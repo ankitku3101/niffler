@@ -8,7 +8,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:rng": "tsx scripts/check-rng.ts",
+    "check:world": "tsx scripts/check-world.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"

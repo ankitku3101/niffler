@@ -40,3 +40,8 @@ export const OrderSchema = z.object({
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 export type ScenarioClass = z.infer<typeof ScenarioClassSchema>;
 export type Order = z.infer<typeof OrderSchema>;
+
+// The order as everything except the evaluator sees it. Dropping the label from
+// the type makes it structurally impossible for ground truth to reach a model
+// prompt, rather than leaving it to convention and review.
+export type PublicOrder = Omit<Order, "_groundTruth">;
