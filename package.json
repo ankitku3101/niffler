@@ -15,7 +15,8 @@
     "check:scenarios": "tsx scripts/check-scenarios.ts",
     "check:datasource": "tsx scripts/check-datasource.ts",
     "check:detection": "tsx scripts/check-detection.ts",
-    "check:db": "tsx scripts/check-db.ts"
+    "check:db": "tsx scripts/check-db.ts",
+    "check:cases": "tsx scripts/check-cases.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
