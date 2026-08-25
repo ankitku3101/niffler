@@ -14,13 +14,17 @@
     "check:payments": "tsx scripts/check-payments.ts",
     "check:scenarios": "tsx scripts/check-scenarios.ts",
     "check:datasource": "tsx scripts/check-datasource.ts",
-    "check:detection": "tsx scripts/check-detection.ts"
+    "check:detection": "tsx scripts/check-detection.ts",
+    "check:db": "tsx scripts/check-db.ts"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }

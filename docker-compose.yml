@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: niffler-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: niffler
+      POSTGRES_PASSWORD: niffler
+      POSTGRES_DB: niffler
+    ports:
+      - "5433:5432"
+    volumes:
+      - niffler-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  niffler-postgres-data:
