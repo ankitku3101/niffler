@@ -10,7 +10,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "typecheck": "tsc --noEmit",
     "check:rng": "tsx scripts/check-rng.ts",
-    "check:world": "tsx scripts/check-world.ts"
+    "check:world": "tsx scripts/check-world.ts",
+    "check:payments": "tsx scripts/check-payments.ts",
+    "check:scenarios": "tsx scripts/check-scenarios.ts",
+    "check:datasource": "tsx scripts/check-datasource.ts",
+    "check:detection": "tsx scripts/check-detection.ts"
   },
   "dependencies": {
     "zod": "^4.4.3"
