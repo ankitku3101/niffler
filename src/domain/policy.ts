@@ -1,5 +1,6 @@
 import z from "zod";
 import type { PublicOrder } from "./order.js";
+import type { Payment } from "./payment.js";
 
 export const PolicyDecisionSchema = z.enum([
     "ALLOWED",
@@ -23,5 +24,23 @@ export function checkEligibility(order: PublicOrder) : { decision: PolicyDecisio
     }
 
     const result = {decision, reason};
+    return result
+}
+
+export function checkAttemptLimit(attempts: Payment[], maxAttempts: number): { decision: PolicyDecision, reason: string } {
+    let decision: PolicyDecision;
+    let reason: string;
+
+    const failedAttempts = attempts.filter( attempt => attempt.status === "failed").length
+
+    if(failedAttempts<maxAttempts) {
+        decision = "ALLOWED";
+        reason = `${failedAttempts} Attempts done; Eligible for another payment attempt`; 
+    } else {
+        decision = "REQUIRES_HUMAN_APPROVAL";
+        reason = `${failedAttempts} Attempts done; Not eligible for another payment attempt; max attempts limit reached.`
+    }
+
+    const result = { decision, reason }
     return result
 }
