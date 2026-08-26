@@ -44,3 +44,24 @@ export function checkAttemptLimit(attempts: Payment[], maxAttempts: number): { d
     const result = { decision, reason }
     return result
 }
+
+
+export function combinePolicyChecks (
+    results: { decision: PolicyDecision; reason: string }[] 
+) : { decision: PolicyDecision; reasons: string[] } {
+
+    const rank: Record<PolicyDecision, number> = {
+        ALLOWED: 0,
+        REQUIRES_HUMAN_APPROVAL: 1,
+        DENIED: 2,
+    };
+
+    // results must have at least one entry, reduce with no seed throws otherwise.
+    const strictestResult = results.reduce((worstSoFar, current) => {
+        return rank[current.decision] > rank[worstSoFar.decision] ? current : worstSoFar;
+    });
+    
+    const reasons = results.map(result => result.reason);
+
+    return { decision: strictestResult.decision, reasons };
+}
