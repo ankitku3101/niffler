@@ -18,10 +18,12 @@
     "check:db": "tsx scripts/check-db.ts",
     "check:cases": "tsx scripts/check-cases.ts",
     "check:tools": "tsx scripts/check-tools.ts",
-    "check:policy": "tsx scripts/check-policy.ts"
+    "check:policy": "tsx scripts/check-policy.ts",
+    "check:agent": "tsx scripts/check-agent.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
+    "groq-sdk": "^1.6.0",
     "postgres": "^3.4.9",
     "zod": "^4.4.3"
   },
