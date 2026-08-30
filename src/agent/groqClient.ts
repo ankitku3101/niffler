@@ -1,6 +1,8 @@
 import Groq from "groq-sdk";
 import type { AgentMessage, AgentTurn, LlmClient, ToolDefinition } from "./llmClient.js";
 
+const MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
+
 // Converts a ToolDefinition to the format expected by the Groq API
 function toGroqTool(tool: ToolDefinition) {
     return {
@@ -50,7 +52,7 @@ export class GroqClient implements LlmClient {
 
         // Call the Groq API to get a response based on the provided messages and tools
         const response = await groq.chat.completions.create({
-            model: "openai/gpt-oss-120b",
+            model: MODEL,
             messages: messages.map(toGroqMessage),
             tools: tools.map(toGroqTool)
         });

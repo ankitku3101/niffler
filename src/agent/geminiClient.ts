@@ -3,7 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import type { Content } from "@google/genai";
 import type { AgentMessage, AgentTurn, LlmClient, ToolDefinition } from "./llmClient.js";
 
-const MODEL = "gemini-3.5-flash";
+const MODEL = process.env.GEMINI_MODEL ?? "gemini-3.5-flash";
 
 function isNotSystem(message: AgentMessage): message is Exclude<AgentMessage, { kind: "system" }> {
     return message.kind !== "system";
