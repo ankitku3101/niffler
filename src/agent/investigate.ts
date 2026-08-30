@@ -3,6 +3,7 @@ import { getCustomerHistory } from "../tools/getCustomerHistory.js";
 import { listPreviousAttempts } from "../tools/listPreviousAttempts.js";
 import type { AgentMessage, LlmClient, ToolDefinition } from "./llmClient.js";
 import type { PaymentDataSource } from "../data/source.js";
+import { checkIterationLimit } from "../domain/policy.js";
 
 const TOOLS = {
     getOrder: getOrder,
@@ -57,9 +58,12 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
 
     while (true) {
         iteration++;
-        if (iteration > maxIterations) {
-            throw new Error(`investigateCase exceeded ${maxIterations} tool-call iterations for case ${caseId}`);
+
+        const { decision, reason } = checkIterationLimit(iteration, maxIterations);
+        if (decision === "REQUIRES_HUMAN_APPROVAL") {
+            return `ESCALATE: ${reason}`;
         }
+
         const turn = await llmClient.converse(messages, TOOL_DEFS);
 
         if (turn.type === "final") {

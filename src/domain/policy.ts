@@ -65,3 +65,18 @@ export function combinePolicyChecks (
 
     return { decision: strictestResult.decision, reasons };
 }
+
+export function checkIterationLimit(toolCallCount: number, maxToolCalls: number): { decision: PolicyDecision, reason: string } {
+    let decision: PolicyDecision;
+    let reason: string;
+
+    if (toolCallCount < maxToolCalls) {
+        decision = "ALLOWED";
+        reason = `Tool calls made: ${toolCallCount}; Eligible for more tool calls.`;
+    } else {
+        decision = "REQUIRES_HUMAN_APPROVAL";
+        reason = `Tool calls made: ${toolCallCount}; Max tool calls limit reached.`;
+    }
+
+    return { decision, reason };
+}
