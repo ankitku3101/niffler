@@ -23,6 +23,7 @@
     "check:investigate": "tsx scripts/check-investigate.ts"
   },
   "dependencies": {
+    "@google/genai": "^2.19.0",
     "drizzle-orm": "^0.45.2",
     "groq-sdk": "^1.6.0",
     "postgres": "^3.4.9",
