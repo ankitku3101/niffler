@@ -19,7 +19,8 @@
     "check:cases": "tsx scripts/check-cases.ts",
     "check:tools": "tsx scripts/check-tools.ts",
     "check:policy": "tsx scripts/check-policy.ts",
-    "check:agent": "tsx scripts/check-agent.ts"
+    "check:agent": "tsx scripts/check-agent.ts",
+    "check:investigate": "tsx scripts/check-investigate.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
