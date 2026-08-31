@@ -4,6 +4,7 @@ import { listPreviousAttempts } from "../tools/listPreviousAttempts.js";
 import type { AgentMessage, LlmClient, ToolDefinition } from "./llmClient.js";
 import type { PaymentDataSource } from "../data/source.js";
 import { checkIterationLimit } from "../domain/policy.js";
+import { DiagnosisSchema, RecommendedActionSchema, type Diagnosis } from "../domain/diagnosis.js";
 
 const TOOLS = {
     getOrder: getOrder,
@@ -44,12 +45,30 @@ const TOOL_DEFS: ToolDefinition[] = [
             },
             required: ["caseId"],
         }
+    },
+    {
+        name: "submitDiagnosis",
+        description: "Submit your final diagnosis and recommended action for this recovery case.",
+        parameters: {
+            type: "object",
+            properties: {
+                diagnosis: { type: "string", description: "A concise summary of the diagnosis." },
+                confidence: { type: "number", description: "A number between 0 and 1 representing your confidence in the diagnosis." },
+                evidence: { type: "array", items: { type: "string" }, description: "Supporting evidence for the diagnosis." },
+                recommendedAction: {
+                    type: "string",
+                    enum: RecommendedActionSchema.options,
+                    description: "The recommended action to take."
+                },
+            },
+            required: ["diagnosis", "confidence", "evidence", "recommendedAction"],
+        }
     }
 ]
 
-export async function investigateCase(dataSource: PaymentDataSource, llmClient: LlmClient, caseId: number) : Promise<string> {
+export async function investigateCase(dataSource: PaymentDataSource, llmClient: LlmClient, caseId: number) : Promise<Diagnosis> {
     const messages: AgentMessage[] = [
-        { kind: "system", text: "You are investigating a failed payment recovery case. Use the provided tools to look up order and payment details before responding." },
+        { kind: "system", text: "You are investigating a failed payment recovery case. Use the provided tools to look up order and payment details before responding. You must always end with a diagnosis by calling the submitDiagnosis tool." },
         { kind: "user", text: `Investigate recovery case ${caseId}.` }
     ];
 
@@ -61,13 +80,30 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
 
         const { decision, reason } = checkIterationLimit(iteration, maxIterations);
         if (decision === "REQUIRES_HUMAN_APPROVAL") {
-            return `ESCALATE: ${reason}`;
+            return {
+                diagnosis: "investigation_incomplete",
+                confidence: 0,
+                evidence: [reason],
+                recommendedAction: "ESCALATE"
+            }
         }
 
         const turn = await llmClient.converse(messages, TOOL_DEFS);
 
         if (turn.type === "final") {
-            return turn.text;
+            messages.push({ kind: "user", text: "You must call submitDiagnosis with your findings before finishing." });
+            continue;
+        }
+
+        if (turn.type === "tool_call" && turn.name === "submitDiagnosis") {
+            // Handle the diagnosis submission
+            const result = DiagnosisSchema.safeParse(turn.input); // Validate the input
+            if (!result.success) {
+                messages.push({ kind: "tool_result", id: turn.id, name: turn.name, output: result.error.message });
+                continue;
+            } else {
+                return result.data;
+            }
         }
 
         messages.push({ kind: "tool_call", id: turn.id, name: turn.name, input: turn.input });

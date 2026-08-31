@@ -8,12 +8,12 @@ import { FallbackLlmClient } from "../src/agent/fallbackClient.js";
 import type { LlmClient } from "../src/agent/llmClient.js";
 import { investigateCase } from "../src/agent/investigate.js";
 
-// Stage 6, Task 6.3/6.4: the real end-to-end run of the agent loop — an
-// LlmClient adapter + the three read tools, driven by investigateCase,
-// against one real DETECTED case. No diagnosis schema, no action tools yet:
-// just proving the loop investigates and terminates. Pass "gemini" or
-// "fallback" as an argv to exercise the other adapters behind the same
-// LlmClient interface; defaults to Groq.
+// Stage 6/7: the real end-to-end run of the agent loop — an LlmClient
+// adapter + the three read tools, driven by investigateCase, against one
+// real DETECTED case. The loop terminates by calling submitDiagnosis,
+// returning a structured Diagnosis rather than free text. No action tools
+// yet — that's Stage 8. Pass "gemini" or "fallback" as an argv to exercise
+// the other adapters behind the same LlmClient interface; defaults to Groq.
 
 const provider = process.argv[2] ?? "groq";
 const llmClient: LlmClient =
