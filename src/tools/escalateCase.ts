@@ -18,7 +18,7 @@ export async function escalateCase(dataSource: PaymentDataSource, rawInput: unkn
             const status = "ESCALATED"
             transitioned = false
             result = { status, transitioned }
-        } else if (!canTransition(caseRow.status, "ESCALATED")) {
+        } else if (!canTransition(caseRow.status, "ACTION_EXECUTED")) {
             throw new Error (`Cannot escalate case ${input.caseId} from status ${caseRow.status}`);
         } else {
             await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));

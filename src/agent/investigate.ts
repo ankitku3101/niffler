@@ -5,6 +5,8 @@ import type { AgentMessage, LlmClient, ToolDefinition } from "./llmClient.js";
 import type { PaymentDataSource } from "../data/source.js";
 import { checkIterationLimit } from "../domain/policy.js";
 import { DiagnosisSchema, RecommendedActionSchema, type Diagnosis } from "../domain/diagnosis.js";
+import { db } from "../db/client.js";
+import { auditLog } from "../db/schema.js";
 
 const TOOLS = {
     getOrder: getOrder,
@@ -102,6 +104,12 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
                 messages.push({ kind: "tool_result", id: turn.id, name: turn.name, output: result.error.message });
                 continue;
             } else {
+                await db.insert(auditLog).values({
+                    caseId: caseId,
+                    toolName: "submitDiagnosis",
+                    input: result.data,
+                    output: result.data,
+                });
                 return result.data;
             }
         }

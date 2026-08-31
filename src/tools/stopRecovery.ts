@@ -19,7 +19,8 @@ export async function stopRecovery(dataSource: PaymentDataSource, rawInput: unkn
 
     if (caseRow.status === "STOPPED") {
         transitioned = false;
-    } else if (canTransition(caseRow.status, "STOPPED")) {
+    } else if (canTransition(caseRow.status, "ACTION_EXECUTED")) {
+        await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
         await db.update(recoveryCases)
             .set({ status: "STOPPED", updatedAt: new Date() })
             .where(eq(recoveryCases.id, input.caseId));
