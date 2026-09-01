@@ -24,7 +24,8 @@
     "check:fallback": "tsx scripts/check-fallback.ts",
     "check:recover": "tsx scripts/check-recover.ts",
     "reset": "tsx scripts/reset.ts",
-    "check:holdout": "tsx scripts/check-holdout.ts"
+    "check:holdout": "tsx scripts/check-holdout.ts",
+    "batch": "tsx scripts/run-batch.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
