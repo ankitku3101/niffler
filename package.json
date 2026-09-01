@@ -23,7 +23,8 @@
     "check:investigate": "tsx scripts/check-investigate.ts",
     "check:fallback": "tsx scripts/check-fallback.ts",
     "check:recover": "tsx scripts/check-recover.ts",
-    "reset": "tsx scripts/reset.ts"
+    "reset": "tsx scripts/reset.ts",
+    "check:holdout": "tsx scripts/check-holdout.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
