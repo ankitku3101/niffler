@@ -39,6 +39,12 @@ export async function generateReport(dataSource: PaymentDataSource) {
     const notYetProcessedCases = treatmentCases.filter((c) => c.status === "DETECTED");
     const failedCases = treatmentCases.filter((c) => c.status === "INVESTIGATING" || c.status === "ACTION_PLANNED");
 
+    const diagnosisRows = await db.select().from(auditLog).where(eq(auditLog.toolName, "submitDiagnosis"));
+    const caseIdsWithDiagnosis = new Set(diagnosisRows.map((r) => r.caseId));
+    const terminalStatuses = new Set(["RECOVERED", "ACTION_EXECUTED", "ESCALATED", "STOPPED"]);
+    const blankDiagnosisCases = treatmentCases.filter(
+        (c) => terminalStatuses.has(c.status) && !caseIdsWithDiagnosis.has(c.id)
+    );
 
     const recoveryRate = confirmedRecoveredPaise / treatmentAtRiskPaise;
 
@@ -69,6 +75,7 @@ export async function generateReport(dataSource: PaymentDataSource) {
         stoppedCases: stoppedCases.length,
         failedCases: failedCases.length,
         notYetProcessedCases: notYetProcessedCases.length,
+        blankDiagnosisCases: blankDiagnosisCases.length,
         revenueAtRiskPaise,
         treatmentAtRiskPaise,
         confirmedRecoveredPaise,

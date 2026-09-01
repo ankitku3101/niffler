@@ -26,7 +26,8 @@
     "reset": "tsx scripts/reset.ts",
     "check:holdout": "tsx scripts/check-holdout.ts",
     "batch": "tsx scripts/run-batch.ts",
-    "report": "tsx scripts/report.ts"
+    "report": "tsx scripts/report.ts",
+    "requeue-blank": "tsx scripts/requeue-blank-cases.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",

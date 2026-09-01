@@ -23,6 +23,7 @@ console.log(`recovered (confirmed)          ${report.recoveredCases}  (${rupees(
 console.log(`recovery link pending          ${report.actionExecutedCases}  (${rupees(report.pendingRecoveryPaise)})`);
 console.log(`escalated                      ${report.escalatedCases}`);
 console.log(`stopped                        ${report.stoppedCases}`);
+console.log(`  of which no real diagnosis   ${report.blankDiagnosisCases}  (quota-exhaustion artifacts, not genuine agent decisions)`);
 console.log(`failed interventions           ${report.failedCases}`);
 console.log(`not yet processed              ${report.notYetProcessedCases}\n`);
 
