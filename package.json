@@ -22,7 +22,8 @@
     "check:agent": "tsx scripts/check-agent.ts",
     "check:investigate": "tsx scripts/check-investigate.ts",
     "check:fallback": "tsx scripts/check-fallback.ts",
-    "check:recover": "tsx scripts/check-recover.ts"
+    "check:recover": "tsx scripts/check-recover.ts",
+    "reset": "tsx scripts/reset.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
