@@ -41,29 +41,34 @@ export async function recoverCase(dataSource: PaymentDataSource, caseId: number,
         output: { decision, reasons },
     })
 
-    let outcome;
+    let outcome : OrderCaseStatus | CapturePaymentResult | CreateRecoveryLink;
 
-    if (decision === "DENIED") {
-        outcome = await stopRecovery(dataSource, { caseId });
-        return { diagnosis, policyDecision: { decision, reasons }, outcome };
-    } else if (decision === "REQUIRES_HUMAN_APPROVAL") {
-        outcome = await escalateCase(dataSource, { caseId });
-        return { diagnosis, policyDecision: { decision, reasons }, outcome };
-    } else {
-        switch (diagnosis.recommendedAction) {
-            case "CAPTURE_PAYMENT":
-                outcome = await capturePayment(dataSource, { caseId });
-                return { diagnosis, policyDecision: { decision, reasons }, outcome };
-            case "RECOVERY_LINK":
-                outcome = await createRecoveryLink(dataSource, { caseId });
-                return { diagnosis, policyDecision: { decision, reasons }, outcome };
-            case "ESCALATE":
-                outcome = await escalateCase(dataSource, { caseId });
-                return { diagnosis, policyDecision: { decision, reasons }, outcome };
-            case "STOP":
-                outcome = await stopRecovery(dataSource, { caseId });
-                return { diagnosis, policyDecision: { decision, reasons }, outcome };
+    try {
+        if (decision === "DENIED") {
+            outcome = await stopRecovery(dataSource, { caseId });
+        } else if (decision === "REQUIRES_HUMAN_APPROVAL") {
+            outcome = await escalateCase(dataSource, { caseId });
+        } else {
+            switch (diagnosis.recommendedAction) {
+                case "CAPTURE_PAYMENT":
+                    outcome = await capturePayment(dataSource, { caseId });
+                    break;                    
+                case "RECOVERY_LINK":
+                    outcome = await createRecoveryLink(dataSource, { caseId });
+                    break;
+                case "ESCALATE":
+                    outcome = await escalateCase(dataSource, { caseId });
+                    break;
+                case "STOP":
+                    outcome = await stopRecovery(dataSource, { caseId });
+                    break;
+            }
         }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`action execution failed for case ${caseId}:`, message);
+        outcome = await escalateCase(dataSource, { caseId });
     }
 
+    return { diagnosis, policyDecision: { decision, reasons }, outcome };
 }

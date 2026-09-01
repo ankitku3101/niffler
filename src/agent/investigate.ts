@@ -90,7 +90,16 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
             }
         }
 
-        const turn = await llmClient.converse(messages, TOOL_DEFS);
+        let turn;
+        try {
+            turn = await llmClient.converse(messages, TOOL_DEFS);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn(`converse() failed on case ${caseId}, iteration ${iteration}:`, message);
+            messages.push({ kind: "user", text: "Your last response could not be processed. Use one of the available tools, and finish by calling submitDiagnosis." });
+            continue;
+        }
+
 
         if (turn.type === "final") {
             messages.push({ kind: "user", text: "You must call submitDiagnosis with your findings before finishing." });

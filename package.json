@@ -21,7 +21,8 @@
     "check:policy": "tsx scripts/check-policy.ts",
     "check:agent": "tsx scripts/check-agent.ts",
     "check:investigate": "tsx scripts/check-investigate.ts",
-    "check:fallback": "tsx scripts/check-fallback.ts"
+    "check:fallback": "tsx scripts/check-fallback.ts",
+    "check:recover": "tsx scripts/check-recover.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
