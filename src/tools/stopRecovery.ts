@@ -19,7 +19,14 @@ export async function stopRecovery(dataSource: PaymentDataSource, rawInput: unkn
 
     if (caseRow.status === "STOPPED") {
         transitioned = false;
+    } else if (canTransition(caseRow.status, "STOPPED")) {
+        // already at ACTION_EXECUTED or ESCALATED — one legal hop straight to STOPPED
+        await db.update(recoveryCases)
+            .set({ status: "STOPPED", updatedAt: new Date() })
+            .where(eq(recoveryCases.id, input.caseId));
+        transitioned = true;
     } else if (canTransition(caseRow.status, "ACTION_EXECUTED")) {
+        // at ACTION_PLANNED — ACTION_PLANNED can't jump to STOPPED directly, so two hops
         await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
         await db.update(recoveryCases)
             .set({ status: "STOPPED", updatedAt: new Date() })

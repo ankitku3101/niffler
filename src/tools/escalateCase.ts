@@ -18,15 +18,23 @@ export async function escalateCase(dataSource: PaymentDataSource, rawInput: unkn
             const status = "ESCALATED"
             transitioned = false
             result = { status, transitioned }
-        } else if (!canTransition(caseRow.status, "ACTION_EXECUTED")) {
-            throw new Error (`Cannot escalate case ${input.caseId} from status ${caseRow.status}`);
-        } else {
-            await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
+        } else if (canTransition(caseRow.status, "ESCALATED")) {
+            // already at ACTION_EXECUTED — one legal hop straight to ESCALATED
             await db.update(recoveryCases).set({ status: "ESCALATED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
-    
+
             const status = "ESCALATED"
             transitioned = true
             result = { status, transitioned }
+        } else if (canTransition(caseRow.status, "ACTION_EXECUTED")) {
+            // at ACTION_PLANNED — ACTION_PLANNED can't jump to ESCALATED directly, so two hops
+            await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
+            await db.update(recoveryCases).set({ status: "ESCALATED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
+
+            const status = "ESCALATED"
+            transitioned = true
+            result = { status, transitioned }
+        } else {
+            throw new Error (`Cannot escalate case ${input.caseId} from status ${caseRow.status}`);
         }
     
         await db.insert(auditLog).values({
