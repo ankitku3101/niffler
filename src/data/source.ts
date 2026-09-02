@@ -37,6 +37,22 @@ export interface PaymentDataSource {
 
   /** One customer's payment history across all orders, oldest first. */
   listPaymentsForCustomer(customerId: string): Promise<Payment[]>;
+
+  /**
+   * Actually capture a previously authorized payment. For the synthetic
+   * fixture this is a no-op — there is no real money to move, and
+   * NIFFLER's own recovery_cases/audit_log already is the record of what
+   * happened. A live adapter must genuinely call the provider.
+   */
+  capturePayment(paymentId: string, amountPaise: number): Promise<void>;
+
+  /**
+   * Actually create a payment link the customer can pay on their own time.
+   * Returns the payable URL. For the synthetic fixture this returns a fake
+   * placeholder — same reasoning as capturePayment's no-op. A live adapter
+   * must genuinely call the provider.
+   */
+  createRecoveryLink(orderId: string, amountPaise: number, customer: Customer): Promise<string>;
 }
 
 /**

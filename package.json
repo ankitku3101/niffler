@@ -27,13 +27,21 @@
     "check:holdout": "tsx scripts/check-holdout.ts",
     "batch": "tsx scripts/run-batch.ts",
     "report": "tsx scripts/report.ts",
-    "requeue-blank": "tsx scripts/requeue-blank-cases.ts"
+    "requeue-blank": "tsx scripts/requeue-blank-cases.ts",
+    "check:razorpay": "tsx scripts/check-razorpay.ts",
+    "check:verify-payment": "tsx scripts/check-verify-payment.ts",
+    "check:razorpay-datasource": "tsx scripts/check-razorpay-datasource.ts",
+    "seed-live-case": "tsx scripts/seed-live-case.ts",
+    "check:recover-live": "tsx scripts/check-recover-live.ts",
+    "reset-live-case": "tsx scripts/reset-live-case.ts",
+    "check:recovery-link": "tsx scripts/check-recovery-link.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
     "drizzle-orm": "^0.45.2",
     "groq-sdk": "^1.6.0",
     "postgres": "^3.4.9",
+    "razorpay": "^2.9.8",
     "zod": "^4.4.3"
   },
   "devDependencies": {

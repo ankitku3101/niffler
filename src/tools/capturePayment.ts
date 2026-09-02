@@ -30,6 +30,8 @@ export async function capturePayment(dataSource: PaymentDataSource, rawInput: un
             throw new Error (`No authorized payment to capture for case ${input.caseId}`);
         }
 
+        await dataSource.capturePayment(authorizedPayment.id, authorizedPayment.amount_paise);
+
         await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
         await db.update(recoveryCases).set({ status: "RECOVERED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
 

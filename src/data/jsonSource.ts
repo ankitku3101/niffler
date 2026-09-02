@@ -119,4 +119,14 @@ export class JsonPaymentDataSource implements PaymentDataSource, EvaluationOracl
   async groundTruthFor(orderId: string): Promise<ScenarioClass | null> {
     return this.ordersById.get(orderId)?._groundTruth ?? null;
   }
+
+  // A no-op: the fixture is immutable, and NIFFLER's own
+  // recovery_cases/audit_log already is the record of what happened.
+  async capturePayment(_paymentId: string, _amountPaise: number): Promise<void> {}
+
+  // Same reasoning as capturePayment — no real customer to send a link to,
+  // so this just preserves the old placeholder behavior.
+  async createRecoveryLink(): Promise<string> {
+    return crypto.randomUUID();
+  }
 }

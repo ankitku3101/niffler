@@ -13,9 +13,9 @@ export interface CreateRecoveryLink extends OrderCaseStatus {
 
 export async function createRecoveryLink (dataSource: PaymentDataSource, rawInput: unknown) : Promise<CreateRecoveryLink> {
     const input = GetOrderInputSchema.parse(rawInput);
-    const { caseRow } = await resolveCaseOrder(dataSource, input.caseId);    
+    const { caseRow, order } = await resolveCaseOrder(dataSource, input.caseId);
 
-    let result : CreateRecoveryLink; 
+    let result : CreateRecoveryLink;
     let transitioned: boolean;
 
     if(caseRow.status === "ACTION_EXECUTED") {
@@ -25,11 +25,17 @@ export async function createRecoveryLink (dataSource: PaymentDataSource, rawInpu
     } else if (!canTransition(caseRow.status, "ACTION_EXECUTED")) {
         throw new Error (`Cannot create recovery link for ${input.caseId} from status ${caseRow.status}`);
     } else {
+        const customer = await dataSource.getCustomer(order.customer_id);
+        if (!customer) {
+            throw new Error(`No customer found for order ${order.id}`);
+        }
+
+        const link = await dataSource.createRecoveryLink(order.id, order.amount_paise, customer);
+
         await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
         const status = "ACTION_EXECUTED"
         transitioned = true
-        const link = crypto.randomUUID();
-        result = { status, transitioned, link }; 
+        result = { status, transitioned, link };
     }
     await db.insert(auditLog).values({
         caseId: input.caseId,

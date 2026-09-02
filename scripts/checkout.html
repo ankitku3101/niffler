@@ -1,0 +1,34 @@
+<!doctype html>
+<!--
+  Stage 10, Task 10.2: manually driving one real Test Mode checkout, since
+  there is no API call that pays an order on our behalf. Open this file
+  directly in a browser, pay with a Razorpay test card, and the order below
+  moves from "created" to "authorized" (not "captured" — the order was
+  created with payment.capture: "manual", see check-razorpay.ts).
+-->
+<title>NIFFLER — manual checkout</title>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  const options = {
+    key: "rzp_test_TXHAzMXmTXKCeD", // public — safe in client-side code, see note above
+    order_id: "order_TXHdgsGhT8mG05", // from check-razorpay.ts's output; swap in a fresh id if re-running
+    amount: 50000,
+    currency: "INR",
+    name: "NIFFLER",
+    description: "Stage 10, Task 10.2 — manual test checkout",
+    handler: function (response) {
+      console.log("payment succeeded:", response);
+      document.body.append(
+        document.createTextNode(JSON.stringify(response))
+      );
+    },
+    modal: {
+      ondismiss: function () {
+        console.log("checkout closed without completing payment");
+      },
+    },
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.open();
+</script>
