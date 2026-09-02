@@ -34,12 +34,15 @@
     "seed-live-case": "tsx scripts/seed-live-case.ts",
     "check:recover-live": "tsx scripts/check-recover-live.ts",
     "reset-live-case": "tsx scripts/reset-live-case.ts",
-    "check:recovery-link": "tsx scripts/check-recovery-link.ts"
+    "check:recovery-link": "tsx scripts/check-recovery-link.ts",
+    "webhook-server": "tsx scripts/webhook-server.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
+    "@hono/node-server": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "groq-sdk": "^1.6.0",
+    "hono": "^4.13.5",
     "postgres": "^3.4.9",
     "razorpay": "^2.9.8",
     "zod": "^4.4.3"
