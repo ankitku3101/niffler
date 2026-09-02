@@ -1,5 +1,5 @@
 import { JsonPaymentDataSource } from "../src/data/jsonSource.js";
-import { checkEligibility, checkAttemptLimit, combinePolicyChecks } from "../src/domain/policy.js";
+import { checkEligibility, checkAttemptLimit, checkPriorRecoveryLink, combinePolicyChecks } from "../src/domain/policy.js";
 import { DETECTION_CUTOFF, toIso } from "../src/generator/world.js";
 
 const MAX_ATTEMPTS = 3;
@@ -65,6 +65,29 @@ if (underLimitResult.decision !== "ALLOWED") {
   throw new Error("checkAttemptLimit blocked an order under the attempt limit");
 }
 console.log("checkAttemptLimit: at/over limit -> REQUIRES_HUMAN_APPROVAL, under limit -> ALLOWED");
+
+// ---------------------------------------------------------------------------
+// checkPriorRecoveryLink: our own records, not the order, are what reveal
+// money already collected through a payment link. Hand-built inputs, like
+// combinePolicyChecks below — this rule reads NIFFLER's audit trail, which
+// no field on a dataset order corresponds to.
+// ---------------------------------------------------------------------------
+
+const linkPaid = checkPriorRecoveryLink({ issued: true, paid: true });
+if (linkPaid.decision !== "DENIED") {
+  throw new Error("checkPriorRecoveryLink allowed recovery on an already-paid link");
+}
+
+const linkOutstanding = checkPriorRecoveryLink({ issued: true, paid: false });
+if (linkOutstanding.decision !== "REQUIRES_HUMAN_APPROVAL") {
+  throw new Error("checkPriorRecoveryLink did not flag an outstanding link for a human");
+}
+
+const noLink = checkPriorRecoveryLink({ issued: false, paid: false });
+if (noLink.decision !== "ALLOWED") {
+  throw new Error("checkPriorRecoveryLink blocked a case with no prior link");
+}
+console.log("checkPriorRecoveryLink: paid -> DENIED, outstanding -> REQUIRES_HUMAN_APPROVAL, none -> ALLOWED");
 
 // ---------------------------------------------------------------------------
 // combinePolicyChecks: the strictest verdict wins, every reason survives

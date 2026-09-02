@@ -1,10 +1,11 @@
+import { eq } from "drizzle-orm";
 import { markActionPlanned } from "../cases/markActionPlanned.js";
 import { markInvestigating } from "../cases/markInvestigating.js";
 import type { PaymentDataSource } from "../data/source.js";
 import { db } from "../db/client.js";
 import { auditLog } from "../db/schema.js";
 import type { Diagnosis } from "../domain/diagnosis.js";
-import { checkAttemptLimit, checkEligibility, combinePolicyChecks, type PolicyDecision } from "../domain/policy.js";
+import { checkAttemptLimit, checkEligibility, checkPriorRecoveryLink, combinePolicyChecks, type PolicyDecision } from "../domain/policy.js";
 import { capturePayment, type CapturePaymentResult } from "../tools/capturePayment.js";
 import { createRecoveryLink, type CreateRecoveryLink } from "../tools/createRecoveryLink.js";
 import { escalateCase } from "../tools/escalateCase.js";
@@ -30,9 +31,21 @@ export async function recoverCase(dataSource: PaymentDataSource, caseId: number,
     const { order } = await resolveCaseOrder(dataSource, caseId);
     const payments = await dataSource.listPaymentsForOrder(order.id);
 
+    // Our own record of what has already been done for this case. The rule that
+    // consumes it stays pure; fetching is the caller's job, same as payments above.
+    const history = await db.select().from(auditLog).where(eq(auditLog.caseId, caseId));
+    const priorLink = {
+        issued: history.some((row) => row.toolName === "createRecoveryLink"),
+        paid: history.some((row) => row.toolName === "webhookPaymentLinkPaid"),
+    };
+
     await markActionPlanned(caseId);
 
-    const { decision, reasons } = combinePolicyChecks([checkEligibility(order), checkAttemptLimit(payments, maxAttempts)]);
+    const { decision, reasons } = combinePolicyChecks([
+        checkEligibility(order),
+        checkAttemptLimit(payments, maxAttempts),
+        checkPriorRecoveryLink(priorLink),
+    ]);
 
     await db.insert(auditLog).values({
         caseId: caseId,
