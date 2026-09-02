@@ -53,12 +53,18 @@ export async function handlePaymentLinkPaid(rawPayload: unknown): Promise<Handle
   // genuinely arrive more than once. A payment can only be captured once,
   // so paymentId is a safe dedup key regardless of whether this is a fresh
   // delivery or a retry of one we already processed.
-  const [alreadyProcessed] = await db
+  //
+  // Every webhook row for the case is checked, not just one — a single row
+  // is all this case can have today (reference_id is unique per link, and a
+  // paid link cannot be paid again), but matching on "some row has this
+  // paymentId" is what the check actually means. Still a read-then-write:
+  // two genuinely concurrent deliveries could both pass. Razorpay spaces its
+  // retries, so this has not been worth a unique constraint yet.
+  const processedRows = await db
     .select()
     .from(auditLog)
-    .where(and(eq(auditLog.caseId, caseRow.id), eq(auditLog.toolName, "webhookPaymentLinkPaid")))
-    .limit(1);
-  if (alreadyProcessed && (alreadyProcessed.input as { paymentId?: string }).paymentId === paymentId) {
+    .where(and(eq(auditLog.caseId, caseRow.id), eq(auditLog.toolName, "webhookPaymentLinkPaid")));
+  if (processedRows.some((row) => (row.input as { paymentId?: string }).paymentId === paymentId)) {
     return { handled: false, reason: `payment ${paymentId} already processed for case ${caseRow.id}` };
   }
 

@@ -7,8 +7,9 @@ import {
   failedPayment,
   methodForReason,
   type PaymentSeed,
+  type SyntheticFailureReason,
 } from "../src/generator/payments.js";
-import { PaymentSchema, type FailureReason } from "../src/domain/index.js";
+import { PaymentSchema } from "../src/domain/index.js";
 
 const rng = makeRng("niffler-v1");
 const seed: PaymentSeed = {
@@ -17,7 +18,7 @@ const seed: PaymentSeed = {
   amountPaise: 149900,
 };
 
-const REASONS: FailureReason[] = [
+const REASONS: SyntheticFailureReason[] = [
   "gateway_timeout", "issuer_unavailable", "insufficient_funds",
   "otp_not_entered", "card_expired", "card_blocked", "risk_blocked",
 ];

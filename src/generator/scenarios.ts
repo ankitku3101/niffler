@@ -5,9 +5,10 @@ import {
   failedPayment,
   methodForReason,
   type PaymentSeed,
+  type SyntheticFailureReason,
 } from "./payments.js";
 import type { Rng } from "./random.js";
-import type { FailureReason, Payment, ScenarioClass } from "../domain/index.js";
+import type { Payment, ScenarioClass } from "../domain/index.js";
 
 /** Everything a writer needs: who, how much, and when the order was placed. */
 export interface ScenarioContext {
@@ -111,7 +112,7 @@ const success: ScenarioWriter = (ctx) => {
 };
 
 const repeatFailure: ScenarioWriter = (ctx) => {
-  const reason = ctx.rng.pick<FailureReason>([
+  const reason = ctx.rng.pick<SyntheticFailureReason>([
     "insufficient_funds",
     "card_blocked",
     "gateway_timeout",
@@ -137,7 +138,7 @@ const authorizedUncaptured: ScenarioWriter = (ctx) => [
 
 const selfRecovered: ScenarioWriter = (ctx) => {
   const first = firstAttempt(ctx);
-  const reason = ctx.rng.pick<FailureReason>(["gateway_timeout", "otp_not_entered"]);
+  const reason = ctx.rng.pick<SyntheticFailureReason>(["gateway_timeout", "otp_not_entered"]);
 
   return [
     failedPayment(ctx.rng, ctx.seed, first, reason),

@@ -9,13 +9,21 @@ process.loadEnvFile();
 // real payment_link.paid shape (CLAUDE.md §22.1) was confirmed from that,
 // not guessed, before handlePaymentLinkPaid was written.
 
+// Checked once at startup rather than per request: without it every delivery
+// would throw inside createHmac, and Razorpay would read the resulting 500 as
+// a failure and retry the same event indefinitely.
+const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+if (!webhookSecret) {
+  throw new Error("RAZORPAY_WEBHOOK_SECRET is not set — add it to .env before starting the server");
+}
+
 const app = new Hono();
 
 app.post("/webhook/razorpay", async (c) => {
   const rawBody = await c.req.text();
   const signature = c.req.header("x-razorpay-signature");
 
-  if (!signature || !verifyWebhookSignature(rawBody, signature, process.env.RAZORPAY_WEBHOOK_SECRET!)) {
+  if (!signature || !verifyWebhookSignature(rawBody, signature, webhookSecret)) {
     console.warn("webhook signature verification FAILED");
     return c.text("invalid signature", 400);
   }

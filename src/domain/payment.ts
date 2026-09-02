@@ -46,6 +46,7 @@ export const FailureReasonSchema = z.enum([
   "card_expired",
   "card_blocked",
   "risk_blocked",
+  "unknown",
 ]);
 
 export const PaymentErrorSchema = z.object({
@@ -102,6 +103,7 @@ export const PaymentSchema = z.discriminatedUnion("status", [
 ]);
 
 export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+export type ErrorCode = z.infer<typeof ErrorCodeSchema>;
 export type ErrorSource = z.infer<typeof ErrorSourceSchema>;
 export type ErrorStep = z.infer<typeof ErrorStepSchema>;
 export type FailureReason = z.infer<typeof FailureReasonSchema>;

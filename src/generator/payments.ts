@@ -9,11 +9,16 @@ import type {
 } from "../domain/index.js";
 import { toIso } from "./world.js";
 
+// "unknown" is a live-data-only reason: RazorpayDataSource falls back to it
+// when Razorpay reports an error_reason outside our vocabulary. The generator
+// never produces it, and excluding it here keeps the catalogues below
+// exhaustive over the reasons that are actually synthesised.
+export type SyntheticFailureReason = Exclude<FailureReason, "unknown">;
+
 // Each failure reason has fixed error fields. Randomising them would produce
 // incoherent records — an expired card is never the gateway's fault — and would
 // leave the agent no stable signal to reason from.
-// TODO: check these descriptions against Razorpay's live error strings at Stage 10.
-const FAILURE_CATALOGUE: Record<FailureReason, Omit<PaymentError, "reason">> = {
+const FAILURE_CATALOGUE: Record<SyntheticFailureReason, Omit<PaymentError, "reason">> = {
   gateway_timeout: {
     code: "GATEWAY_ERROR",
     description: "Payment processing failed due to a timeout at the gateway.",
@@ -58,7 +63,7 @@ const FAILURE_CATALOGUE: Record<FailureReason, Omit<PaymentError, "reason">> = {
   },
 };
 
-export function errorFor(reason: FailureReason): PaymentError {
+export function errorFor(reason: SyntheticFailureReason): PaymentError {
   return { ...FAILURE_CATALOGUE[reason], reason };
 }
 
@@ -72,7 +77,7 @@ const METHOD_WEIGHTS: Record<PaymentMethod, number> = {
 
 // Not every failure is possible on every method: UPI authenticates with a PIN
 // rather than an OTP, and wallets have no issuing bank to be unavailable.
-const METHODS_BY_REASON: Record<FailureReason, PaymentMethod[]> = {
+const METHODS_BY_REASON: Record<SyntheticFailureReason, PaymentMethod[]> = {
   gateway_timeout: ["card", "upi", "netbanking", "wallet", "emi"],
   issuer_unavailable: ["card", "upi", "netbanking"],
   insufficient_funds: ["card", "upi", "netbanking", "wallet"],
@@ -89,7 +94,7 @@ function weightedMethod(rng: Rng, allowed: PaymentMethod[]): PaymentMethod {
 }
 
 /** A method consistent with the given failure reason. */
-export function methodForReason(rng: Rng, reason: FailureReason): PaymentMethod {
+export function methodForReason(rng: Rng, reason: SyntheticFailureReason): PaymentMethod {
   return weightedMethod(rng, METHODS_BY_REASON[reason]);
 }
 
@@ -109,7 +114,7 @@ export function failedPayment(
   rng: Rng,
   seed: PaymentSeed,
   minute: number,
-  reason: FailureReason,
+  reason: SyntheticFailureReason,
   method?: PaymentMethod
 ): FailedPayment {
   return {

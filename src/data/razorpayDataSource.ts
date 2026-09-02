@@ -19,6 +19,16 @@
 
 import Razorpay from "razorpay";
 import type { Customer, Payment, PaymentMethod, PublicOrder } from "../domain/index.js";
+import {
+  ErrorCodeSchema,
+  ErrorSourceSchema,
+  ErrorStepSchema,
+  FailureReasonSchema,
+  type ErrorCode,
+  type ErrorSource,
+  type ErrorStep,
+  type FailureReason,
+} from "../domain/payment.js";
 import type { PaymentDataSource } from "./source.js";
 
 function toIso(unixSeconds: number): string {
@@ -27,6 +37,27 @@ function toIso(unixSeconds: number): string {
 
 function toPaise(amount: number | string): number {
   return typeof amount === "string" ? Number(amount) : amount;
+}
+
+// Razorpay's error_code, error_source, error_step, and error_reason fields
+function toErrorCode(raw: string | null): ErrorCode {
+  const parsed = ErrorCodeSchema.safeParse(raw);
+  return parsed.success ? parsed.data : "SERVER_ERROR";
+}
+
+function toErrorSource(raw: string | null): ErrorSource {
+  const parsed = ErrorSourceSchema.safeParse(raw);
+  return parsed.success ? parsed.data : "internal";
+}
+
+function toErrorStep(raw: string | null): ErrorStep {
+  const parsed = ErrorStepSchema.safeParse(raw);
+  return parsed.success ? parsed.data : "payment_authorization";
+}
+
+function toFailureReason(raw: string | null): FailureReason {
+  const parsed = FailureReasonSchema.safeParse(raw);
+  return parsed.success ? parsed.data : "unknown";
 }
 
 function deriveCustomerId(payments: Array<{ contact?: string | number | null }>): string {
@@ -46,6 +77,11 @@ function toDomainPayment(
     method: string;
     status: "created" | "authorized" | "captured" | "refunded" | "failed";
     created_at: number;
+    error_code?: string | null;
+    error_description?: string | null;
+    error_source?: string | null;
+    error_step?: string | null;
+    error_reason?: string | null;
   },
   customerId: string
 ): Payment {
@@ -75,13 +111,17 @@ function toDomainPayment(
         refunded_at: created_at,
       };
     case "failed":
-      // Not exercised by the authorized_uncaptured demo this adapter is
-      // built for. Razorpay's real error_reason taxonomy is far larger
-      // than FailureReasonSchema (see the TODO in payment.ts) — mapping it
-      // honestly needs its own pass before this branch is trustworthy.
-      throw new Error(
-        `RazorpayDataSource cannot yet map a failed payment (${raw.id}) — see the comment above this line before removing it.`
-      );
+      return {
+        ...base,
+        status: "failed",
+        error: {
+          code: toErrorCode(raw.error_code ?? null),
+          description: raw.error_description ?? "",
+          source: toErrorSource(raw.error_source ?? null),
+          step: toErrorStep(raw.error_step ?? null),
+          reason: toFailureReason(raw.error_reason ?? null),
+        },
+      };
   }
 }
 
@@ -122,7 +162,9 @@ export class RazorpayDataSource implements PaymentDataSource {
   // state regardless of `asOf`. A real limitation, not an oversight; see
   // the file header.
   async listOrders(_asOf?: string): Promise<PublicOrder[]> {
-    const { items: orders } = await this.razorpay.orders.all();
+    // count defaults to 10 and caps at 100 (per the SDK's own pagination
+    // docs). 100 covers this demo account; a real one would need paging.
+    const { items: orders } = await this.razorpay.orders.all({ count: 100 });
     const mapped = await Promise.all(orders.map((o) => this.getOrder(o.id)));
     return mapped.filter((o): o is PublicOrder => o !== null);
   }
@@ -141,7 +183,7 @@ export class RazorpayDataSource implements PaymentDataSource {
   async getCustomer(customerId: string): Promise<Customer | null> {
     if (customerId === "razorpay:unknown") return null;
 
-    const { items: orders } = await this.razorpay.orders.all();
+    const { items: orders } = await this.razorpay.orders.all({ count: 100 });
     for (const order of orders) {
       const { items: payments } = await this.razorpay.orders.fetchPayments(order.id);
       const match = payments.find((p) => deriveCustomerId([p]) === customerId);
