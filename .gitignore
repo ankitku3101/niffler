@@ -8,6 +8,8 @@ dist/
 
 .DS_Store
 Thumbs.db
+.playwright-mcp/
+.claude/
 
 CLAUDE.md
 GLOSSARY.md
