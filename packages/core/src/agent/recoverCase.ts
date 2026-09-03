@@ -13,6 +13,7 @@ import { resolveCaseOrder } from "../tools/resolveCase.js";
 import { stopRecovery, type OrderCaseStatus } from "../tools/stopRecovery.js";
 import { investigateCase } from "./investigate.js";
 import type { LlmClient } from "./llmClient.js";
+import type { OnStep } from "./recoveryStep.js";
 
 export type RecoveryCaseOutcome = {
     diagnosis: Diagnosis;
@@ -23,10 +24,10 @@ export type RecoveryCaseOutcome = {
     outcome: OrderCaseStatus | CapturePaymentResult | CreateRecoveryLink;
 };
 
-export async function recoverCase(dataSource: PaymentDataSource, caseId: number, llmClient: LlmClient, maxAttempts: number) : Promise<RecoveryCaseOutcome> {
+export async function recoverCase(dataSource: PaymentDataSource, caseId: number, llmClient: LlmClient, maxAttempts: number, onStep?: OnStep) : Promise<RecoveryCaseOutcome> {
 
     await markInvestigating(caseId);
-    const diagnosis = await investigateCase(dataSource, llmClient, caseId);
+    const diagnosis = await investigateCase(dataSource, llmClient, caseId, onStep);
 
     const { order } = await resolveCaseOrder(dataSource, caseId);
     const payments = await dataSource.listPaymentsForOrder(order.id);
@@ -53,26 +54,34 @@ export async function recoverCase(dataSource: PaymentDataSource, caseId: number,
         input: {caseId},
         output: { decision, reasons },
     })
+    onStep?.({ kind: "policy_check", decision, reasons });
 
     let outcome : OrderCaseStatus | CapturePaymentResult | CreateRecoveryLink;
+    let actionToolName: string;
 
     try {
         if (decision === "DENIED") {
+            actionToolName = "stopRecovery";
             outcome = await stopRecovery(dataSource, { caseId });
         } else if (decision === "REQUIRES_HUMAN_APPROVAL") {
+            actionToolName = "escalateCase";
             outcome = await escalateCase(dataSource, { caseId });
         } else {
             switch (diagnosis.recommendedAction) {
                 case "CAPTURE_PAYMENT":
+                    actionToolName = "capturePayment";
                     outcome = await capturePayment(dataSource, { caseId });
-                    break;                    
+                    break;
                 case "RECOVERY_LINK":
+                    actionToolName = "createRecoveryLink";
                     outcome = await createRecoveryLink(dataSource, { caseId });
                     break;
                 case "ESCALATE":
+                    actionToolName = "escalateCase";
                     outcome = await escalateCase(dataSource, { caseId });
                     break;
                 case "STOP":
+                    actionToolName = "stopRecovery";
                     outcome = await stopRecovery(dataSource, { caseId });
                     break;
             }
@@ -80,8 +89,11 @@ export async function recoverCase(dataSource: PaymentDataSource, caseId: number,
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.warn(`action execution failed for case ${caseId}:`, message);
+        actionToolName = "escalateCase";
         outcome = await escalateCase(dataSource, { caseId });
     }
+
+    onStep?.({ kind: "action", toolName: actionToolName, output: outcome });
 
     return { diagnosis, policyDecision: { decision, reasons }, outcome };
 }

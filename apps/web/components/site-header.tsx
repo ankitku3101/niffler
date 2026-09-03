@@ -10,7 +10,9 @@ import type { RunGateStatus } from "@/lib/runStatus"
 
 const titles: Record<string, string> = {
   "/dashboard": "Command Center",
+  "/dashboard/live": "Agent Run",
   "/dashboard/cases": "Decision Explorer",
+  "/dashboard/simulate": "Try It Yourself",
 }
 
 export function SiteHeader({ runStatus }: { runStatus: RunGateStatus }) {

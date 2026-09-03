@@ -7,6 +7,7 @@ import { checkIterationLimit } from "../domain/policy.js";
 import { DiagnosisSchema, RecommendedActionSchema, type Diagnosis } from "../domain/diagnosis.js";
 import { db } from "../db/client.js";
 import { auditLog } from "../db/schema.js";
+import type { OnStep } from "./recoveryStep.js";
 
 const TOOLS = {
     getOrder: getOrder,
@@ -68,7 +69,9 @@ const TOOL_DEFS: ToolDefinition[] = [
     }
 ]
 
-export async function investigateCase(dataSource: PaymentDataSource, llmClient: LlmClient, caseId: number) : Promise<Diagnosis> {
+export async function investigateCase(dataSource: PaymentDataSource, llmClient: LlmClient, caseId: number, onStep?: OnStep) : Promise<Diagnosis> {
+    onStep?.({ kind: "investigating" });
+
     const messages: AgentMessage[] = [
         { kind: "system", text: "You are investigating a failed payment recovery case. Use the provided tools to look up order and payment details before responding. You must always end with a diagnosis by calling the submitDiagnosis tool." },
         { kind: "user", text: `Investigate recovery case ${caseId}.` }
@@ -119,19 +122,23 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
                     input: result.data,
                     output: result.data,
                 });
+                onStep?.({ kind: "diagnosis", diagnosis: result.data });
                 return result.data;
             }
         }
 
         messages.push({ kind: "tool_call", id: turn.id, name: turn.name, input: turn.input });
+        onStep?.({ kind: "tool_call", name: turn.name, input: turn.input });
 
         const tool = TOOLS[turn.name as keyof typeof TOOLS];
         try {
             const output = await tool(dataSource, turn.input);
             messages.push({ kind: "tool_result", id: turn.id, name: turn.name, output });
+            onStep?.({ kind: "tool_result", name: turn.name, output });
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             messages.push({ kind: "tool_result", id: turn.id, name: turn.name, output: { error: message } });
+            onStep?.({ kind: "tool_result", name: turn.name, output: { error: message } });
         }
     }
 }

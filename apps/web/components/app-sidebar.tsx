@@ -20,8 +20,16 @@ const navMain = [
     url: "/dashboard",
   },
   {
+    title: "Agent Run",
+    url: "/dashboard/live",
+  },
+  {
     title: "Decision Explorer",
     url: "/dashboard/cases",
+  },
+  {
+    title: "Try It Yourself",
+    url: "/dashboard/simulate",
   },
 ]
 
