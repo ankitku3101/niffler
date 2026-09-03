@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/mode-toggle"
 import { RunButton } from "@/components/run-button"
+import { ResetButton } from "@/components/reset-button"
 import type { RunGateStatus } from "@/lib/runStatus"
 
 const titles: Record<string, string> = {
@@ -26,6 +27,7 @@ export function SiteHeader({ runStatus }: { runStatus: RunGateStatus }) {
         />
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
+          <ResetButton />
           <RunButton initialStatus={runStatus} />
           <ModeToggle />
         </div>

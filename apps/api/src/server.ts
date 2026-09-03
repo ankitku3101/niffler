@@ -7,6 +7,7 @@ import { FallbackLlmClient } from "@niffler/core/agent/fallbackClient";
 import { JsonPaymentDataSource } from "@niffler/core/data/jsonSource";
 import { db } from "@niffler/core/db/client";
 import { agentRuns } from "@niffler/core/db/schema";
+import { resetRecovery } from "@niffler/core/cases/resetRecovery";
 import { generateReport } from "@niffler/core/evaluation/report";
 import { runBatch } from "@niffler/core/evaluation/runBatch";
 import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
@@ -79,6 +80,22 @@ app.post("/run", async (req, res) => {
   } catch (error) {
     await db.update(agentRuns).set({ finishedAt: new Date() }).where(eq(agentRuns.id, run!.id));
     console.error("batch run failed:", error);
+    res.status(500).json({ ok: false });
+  }
+});
+
+// Owner-only, unlike /run — no fallback to the public gate.
+app.post("/reset", async (req, res) => {
+  if (!isOwnerToken(req.header("x-owner-token") ?? undefined)) {
+    res.status(403).json({ error: "owner only" });
+    return;
+  }
+
+  try {
+    const summary = await resetRecovery(new JsonPaymentDataSource());
+    res.json({ ok: true, summary });
+  } catch (error) {
+    console.error("reset failed:", error);
     res.status(500).json({ ok: false });
   }
 });
