@@ -13,6 +13,7 @@ export interface CaseSummary {
   diagnosis: string | null;
   recommendedAction: string | null;
   confidence: number | null;
+  policyOverridden: boolean;
 }
 
 export async function listCases(dataSource: PaymentDataSource): Promise<CaseSummary[]> {
@@ -22,6 +23,11 @@ export async function listCases(dataSource: PaymentDataSource): Promise<CaseSumm
   const cases = await db.select().from(recoveryCases);
   const diagnosisRows = await db.select().from(auditLog).where(eq(auditLog.toolName, "submitDiagnosis"));
   const diagnosisByCaseId = new Map(diagnosisRows.map((row) => [row.caseId, row.output as Diagnosis]));
+
+  const policyRows = await db.select().from(auditLog).where(eq(auditLog.toolName, "policyCheck"));
+  const overriddenCaseIds = new Set(
+    policyRows.filter((row) => (row.output as { decision: string }).decision !== "ALLOWED").map((row) => row.caseId)
+  );
 
   return cases.map((c) => {
     const diagnosis = diagnosisByCaseId.get(c.id);
@@ -33,6 +39,7 @@ export async function listCases(dataSource: PaymentDataSource): Promise<CaseSumm
       diagnosis: diagnosis?.diagnosis ?? null,
       recommendedAction: diagnosis?.recommendedAction ?? null,
       confidence: diagnosis?.confidence ?? null,
+      policyOverridden: overriddenCaseIds.has(c.id),
     };
   });
 }
