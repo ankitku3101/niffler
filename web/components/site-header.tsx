@@ -11,7 +11,7 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 h-4 data-vertical:self-auto"
         />
-        <h1 className="text-base font-medium">Documents</h1>
+        <h1 className="text-base font-medium">Command Center</h1>
         <ModeToggle className="ml-auto" />
       </div>
     </header>

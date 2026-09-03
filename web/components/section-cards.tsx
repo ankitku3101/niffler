@@ -1,5 +1,3 @@
-"use client"
-
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -10,100 +8,149 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { TrendingUpIcon, TrendingDownIcon } from "lucide-react"
+import { formatPaise, formatPercent, formatPercentPoints } from "@/lib/format"
+import type { NifflerReport } from "@/lib/report"
 
-export function SectionCards() {
+export function SectionCards({ report }: { report: NifflerReport }) {
+  const recoveryActions = report.recoveredCases + report.actionExecutedCases
+  const totalCandidates = report.treatmentCases + report.controlCases
+  const liftIsPositive = report.attributableLiftRate >= 0
+
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total Revenue</CardDescription>
+          <CardDescription>Revenue at Risk</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            {formatPaise(report.revenueAtRiskPaise)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +12.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Trending up this month{" "}
-            <TrendingUpIcon className="size-4" />
+          <div className="line-clamp-1 font-medium">
+            {totalCandidates} failed orders detected
           </div>
           <div className="text-muted-foreground">
-            Visitors for the last 6 months
+            {report.controlCases} held out as an untouched control group
           </div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>New Customers</CardDescription>
+          <CardDescription>Revenue Recovered</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            1,234
+            {formatPaise(report.confirmedRecoveredPaise)}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingDownIcon
-              />
-              -20%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Down 20% this period{" "}
-            <TrendingDownIcon className="size-4" />
+          <div className="line-clamp-1 font-medium">
+            Confirmed via capture or a paid recovery link
           </div>
           <div className="text-muted-foreground">
-            Acquisition needs attention
+            {report.pendingRecoveryPaise > 0
+              ? `+ ${formatPaise(report.pendingRecoveryPaise)} pending on outstanding recovery links`
+              : "No recovery links outstanding"}
           </div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Active Accounts</CardDescription>
+          <CardDescription>Recovery Rate</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            45,678
+            {formatPercent(report.recoveryRate)}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +12.5%
+              {liftIsPositive ? <TrendingUpIcon /> : <TrendingDownIcon />}
+              {formatPercentPoints(report.attributableLiftRate)}
             </Badge>
           </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Strong user retention{" "}
-            <TrendingUpIcon className="size-4" />
+          <div className="line-clamp-1 font-medium">
+            Attributable lift over the control group
           </div>
-          <div className="text-muted-foreground">Engagement exceed targets</div>
+          <div className="text-muted-foreground">
+            vs {formatPercent(report.naturalRecoveryRate)} recovered naturally, untouched
+          </div>
         </CardFooter>
       </Card>
+
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Growth Rate</CardDescription>
+          <CardDescription>Recovery Cases</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            4.5%
+            {report.treatmentCases}
           </CardTitle>
-          <CardAction>
-            <Badge variant="outline">
-              <TrendingUpIcon
-              />
-              +4.5%
-            </Badge>
-          </CardAction>
         </CardHeader>
         <CardFooter className="flex-col items-start gap-1.5 text-sm">
-          <div className="line-clamp-1 flex gap-2 font-medium">
-            Steady performance increase{" "}
-            <TrendingUpIcon className="size-4" />
+          <div className="line-clamp-1 font-medium">
+            {report.controlCases} more held out as control
           </div>
-          <div className="text-muted-foreground">Meets growth projections</div>
+          <div className="text-muted-foreground">
+            {report.notYetProcessedCases > 0
+              ? `${report.notYetProcessedCases} still queued`
+              : "All cases processed"}
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Recovery Actions</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {recoveryActions}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 font-medium">
+            {report.recoveredCases} captured, {report.actionExecutedCases} recovery link sent
+          </div>
+          <div className="text-muted-foreground">Money-moving actions attempted</div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Escalations</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {report.escalatedCases}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 font-medium">Routed to a human</div>
+          <div className="text-muted-foreground">
+            Policy required approval, or the agent judged the case ambiguous
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Stopped Cases</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {report.stoppedCases}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 font-medium">Policy denied further action</div>
+          <div className="text-muted-foreground">Already paid, or judged unrecoverable</div>
+        </CardFooter>
+      </Card>
+
+      <Card className="@container/card">
+        <CardHeader>
+          <CardDescription>Policy Guardrail</CardDescription>
+          <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+            {report.policyOverrideCount}
+          </CardTitle>
+        </CardHeader>
+        <CardFooter className="flex-col items-start gap-1.5 text-sm">
+          <div className="line-clamp-1 font-medium">Deterministic policy interventions</div>
+          <div className="text-muted-foreground">
+            Times the agent&apos;s proposed action was denied or required human approval
+          </div>
         </CardFooter>
       </Card>
     </div>

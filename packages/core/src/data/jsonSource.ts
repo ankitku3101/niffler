@@ -5,7 +5,8 @@
 // failure can only be produced by driving the checkout flow in a browser.
 
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type {
   Customer,
   Order,
@@ -24,7 +25,7 @@ interface WorldFile {
   payments: Payment[];
 }
 
-const DEFAULT_PATH = "data/world.json";
+const DEFAULT_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "../../data/world.json");
 
 function statusFrom(payments: Payment[]): OrderStatus {
   if (payments.some((p) => p.status === "captured" || p.status === "refunded")) {

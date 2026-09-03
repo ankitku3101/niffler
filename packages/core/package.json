@@ -6,9 +6,14 @@
   "author": "",
   "type": "module",
   "exports": {
-    "./*": "./src/*.ts"
+    "./*": {
+      "types": "./src/*.ts",
+      "default": "./dist/*.js"
+    }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "typecheck": "tsc --noEmit",
     "check:rng": "tsx scripts/check-rng.ts",
     "check:world": "tsx scripts/check-world.ts",

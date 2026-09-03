@@ -4,8 +4,10 @@
 
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-process.loadEnvFile();
+process.loadEnvFile(resolve(dirname(fileURLToPath(import.meta.url)), "../../.env"));
 
 const queryClient = postgres(process.env.DATABASE_URL!);
 
