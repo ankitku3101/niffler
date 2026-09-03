@@ -1,6 +1,7 @@
 {
   "name": "niffler",
   "private": true,
+  "packageManager": "npm@11.6.1",
   "workspaces": [
     "packages/*",
     "web"
