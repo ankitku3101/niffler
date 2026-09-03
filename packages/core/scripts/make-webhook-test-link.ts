@@ -4,7 +4,7 @@ process.loadEnvFile();
 
 // Stage 10: throwaway helper — creates a Payment Link with a timestamp-based
 // reference_id (always unique, unlike order-based links) purely to trigger
-// a fresh payment_link.paid webhook event while wiring up webhook-server.ts.
+// a fresh payment_link.paid webhook event while wiring up the webhook receiver (now apps/api).
 // Not tied to any real recovery case.
 
 const razorpay = new Razorpay({

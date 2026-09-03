@@ -24,3 +24,15 @@ export const auditLog = pgTable("audit_log", {
     output: jsonb().notNull(),
     createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow()
 })
+
+// One row per RUN RECOVERY AGENT click; finishedAt is null while in progress.
+export const agentRuns = pgTable("agent_runs", {
+    id: serial("id").primaryKey(),
+    startedAt: timestamp("started_at", {withTimezone: true}).notNull().defaultNow(),
+    finishedAt: timestamp("finished_at", {withTimezone: true}),
+    caseLimit: integer("case_limit").notNull(),
+    processed: integer("processed"),
+    succeeded: integer("succeeded"),
+    failed: integer("failed"),
+    triggeredBy: text("triggered_by").notNull(),
+})
