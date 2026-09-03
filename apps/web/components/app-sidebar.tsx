@@ -19,6 +19,10 @@ const navMain = [
     title: "Command Center",
     url: "/dashboard",
   },
+  {
+    title: "Decision Explorer",
+    url: "/dashboard/cases",
+  },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

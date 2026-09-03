@@ -9,6 +9,7 @@ import { db } from "@niffler/core/db/client";
 import { agentRuns } from "@niffler/core/db/schema";
 import { generateReport } from "@niffler/core/evaluation/report";
 import { runBatch } from "@niffler/core/evaluation/runBatch";
+import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
 import { handlePaymentLinkPaid } from "@niffler/core/webhooks/handlePaymentLinkPaid";
 import { verifyWebhookSignature } from "@niffler/core/webhooks/verifySignature";
 import { getRunGateStatus, isOwnerToken, PUBLIC_RUN_LIMIT } from "./runGate.js";
@@ -31,6 +32,21 @@ app.get("/report", async (_req, res) => {
 
 app.get("/run/status", async (_req, res) => {
   res.json(await getRunGateStatus());
+});
+
+app.get("/cases", async (_req, res) => {
+  const cases = await listCases(new JsonPaymentDataSource());
+  res.json(cases);
+});
+
+app.get("/cases/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const detail = await getCaseDetail(new JsonPaymentDataSource(), id);
+  if (!detail) {
+    res.status(404).json({ error: "not found" });
+    return;
+  }
+  res.json(detail);
 });
 
 app.post("/run", async (req, res) => {
