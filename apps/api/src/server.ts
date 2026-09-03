@@ -11,6 +11,7 @@ import { resetRecovery } from "@niffler/core/cases/resetRecovery";
 import { generateReport } from "@niffler/core/evaluation/report";
 import { runBatch } from "@niffler/core/evaluation/runBatch";
 import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
+import { getLastFinishedRun } from "@niffler/core/evaluation/lastRun";
 import { handlePaymentLinkPaid } from "@niffler/core/webhooks/handlePaymentLinkPaid";
 import { verifyWebhookSignature } from "@niffler/core/webhooks/verifySignature";
 import { getRunGateStatus, isOwnerToken, PUBLIC_RUN_LIMIT } from "./runGate.js";
@@ -33,6 +34,10 @@ app.get("/report", async (_req, res) => {
 
 app.get("/run/status", async (_req, res) => {
   res.json(await getRunGateStatus());
+});
+
+app.get("/run/last", async (_req, res) => {
+  res.json(await getLastFinishedRun());
 });
 
 app.get("/cases", async (_req, res) => {
