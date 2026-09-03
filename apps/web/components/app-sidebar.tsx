@@ -20,6 +20,10 @@ const navMain = [
     url: "/dashboard",
   },
   {
+    title: "Help",
+    url: "/dashboard/help",
+  },
+  {
     title: "Agent Run",
     url: "/dashboard/live",
   },
@@ -30,6 +34,10 @@ const navMain = [
   {
     title: "Try It Yourself",
     url: "/dashboard/simulate",
+  },
+  {
+    title: "Policy Guardrails",
+    url: "/dashboard/policies",
   },
 ]
 
