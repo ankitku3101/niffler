@@ -24,9 +24,6 @@ export function LiveRunPicker({ cases }: { cases: CaseSummary[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">
-        Pick a case below and watch NIFFLER investigate, diagnose, check policy, and act on it live.
-      </p>
       <div className="flex flex-wrap gap-2">
         {shown.map((c) => (
           <Button

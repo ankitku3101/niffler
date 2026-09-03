@@ -52,13 +52,13 @@ app.get("/run/last", async (_req, res) => {
 });
 
 app.get("/cases", async (_req, res) => {
-  const cases = await listCases(new JsonPaymentDataSource());
+  const cases = await listCases(new JsonPaymentDataSource(), new RazorpayDataSource());
   res.json(cases);
 });
 
 app.get("/cases/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const detail = await getCaseDetail(new JsonPaymentDataSource(), id);
+  const detail = await getCaseDetail(new JsonPaymentDataSource(), id, new RazorpayDataSource());
   if (!detail) {
     res.status(404).json({ error: "not found" });
     return;

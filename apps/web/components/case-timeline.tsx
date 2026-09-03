@@ -1,6 +1,5 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { CaseDetail } from "@/lib/cases"
 import {
   ActionCard,
@@ -37,7 +36,7 @@ export function CaseTimeline({ auditTrail }: { auditTrail: AuditRow[] }) {
   const cycles = groupIntoCycles(auditTrail)
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {cycles.map((cycle, i) => (
         <Cycle key={cycle[0]!.id} cycle={cycle} attempt={i + 1} isLast={i === cycles.length - 1} />
       ))}
@@ -52,18 +51,16 @@ function Cycle({ cycle, attempt, isLast }: { cycle: AuditRow[]; attempt: number;
   const actionRow = cycle.find((r) => ACTION_TOOLS.has(r.toolName))
 
   return (
-    <Card className="gap-3 py-4">
-      <CardHeader className="gap-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          {isLast ? "Latest attempt" : `Attempt ${attempt}`} · {new Date(cycle[0]!.createdAt).toLocaleString()}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3 text-sm">
+    <div className="flex flex-col gap-3 border-t pt-4 first:border-t-0 first:pt-0">
+      <h3 className="text-sm font-medium text-muted-foreground">
+        {isLast ? "Latest attempt" : `Attempt ${attempt}`} · {new Date(cycle[0]!.createdAt).toLocaleString()}
+      </h3>
+      <div className="flex flex-col gap-3 text-sm">
         <InvestigatedSummary reads={reads} />
         {diagnosisRow && <DiagnosisCard diagnosis={diagnosisRow.output as DiagnosisOutput} />}
         {policyRow && <PolicyCard policy={policyRow.output as PolicyOutput} />}
         {actionRow && <ActionCard toolName={actionRow.toolName} action={actionRow.output as ActionOutput} />}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

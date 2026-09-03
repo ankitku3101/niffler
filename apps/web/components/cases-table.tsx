@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatPaise } from "@/lib/format"
 import { getCaseDetail, type CaseDetail, type CaseSummary } from "@/lib/cases"
 import { CaseTimeline } from "@/components/case-timeline"
+import { RECOMMENDED_ACTION_LABELS } from "@/components/timeline-cards"
 
 const statusVariant: Record<
   string,
@@ -100,14 +101,14 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
         <button
           type="button"
           onClick={() => setShowLegend((v) => !v)}
-          className="cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:underline"
+          className="cursor-pointer text-sm text-muted-foreground underline-offset-2 hover:underline"
         >
           {showLegend ? "Hide" : "What do these mean?"}
         </button>
       </div>
 
       {showLegend && (
-        <dl className="mb-4 grid grid-cols-1 gap-x-6 gap-y-1 rounded-lg border bg-muted/30 p-3 text-xs sm:grid-cols-2">
+        <dl className="mb-4 grid grid-cols-1 gap-x-6 gap-y-1.5 rounded-lg border bg-muted/30 p-4 text-sm sm:grid-cols-2">
           {statusesPresent.map((status) => (
             <div key={status} className="flex gap-1.5">
               <dt className="shrink-0 font-medium">{status}</dt>
@@ -129,14 +130,14 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
 
       {!showLegend && <div className="mb-3" />}
 
-      <Table className="table-fixed">
+      <Table className="table-fixed min-w-190">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-28 truncate">Order</TableHead>
+            <TableHead className="w-24 truncate">Order</TableHead>
             <TableHead className="w-32.5 truncate">Status</TableHead>
-            <TableHead className="w-17.5 truncate">Amount</TableHead>
-            <TableHead className="w-40 truncate">Diagnosis</TableHead>
-            <TableHead className="w-30 truncate">Recommended Action</TableHead>
+            <TableHead className="w-16 truncate">Amount</TableHead>
+            <TableHead className="w-80">Diagnosis</TableHead>
+            <TableHead className="w-40">Recommended Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -146,7 +147,7 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
               className="cursor-pointer"
               onClick={() => openCase(c.id)}
             >
-              <TableCell className="truncate">{c.orderId}</TableCell>
+              <TableCell className="truncate" title={c.orderId}>{c.orderId}</TableCell>
               <TableCell className="overflow-hidden">
                 <div className="flex items-center gap-1.5">
                   <Badge variant={statusVariant[c.status] ?? "outline"}>
@@ -156,8 +157,12 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
                 </div>
               </TableCell>
               <TableCell className="truncate">{formatPaise(c.amountPaise)}</TableCell>
-              <TableCell className="truncate">{c.diagnosis ?? "—"}</TableCell>
-              <TableCell className="truncate">{c.recommendedAction ?? "—"}</TableCell>
+              <TableCell className="line-clamp-2 py-2.5 text-sm leading-snug whitespace-normal">
+                {c.diagnosis ?? "—"}
+              </TableCell>
+              <TableCell className="text-sm whitespace-normal">
+                {c.recommendedAction ? RECOMMENDED_ACTION_LABELS[c.recommendedAction] ?? c.recommendedAction : "—"}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

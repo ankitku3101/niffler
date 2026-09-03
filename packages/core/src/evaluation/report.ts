@@ -15,12 +15,15 @@ export async function generateReport(dataSource: PaymentDataSource) {
 
     const allCases = await db.select().from(recoveryCases);
 
-    const treatmentCases = allCases.filter((c) => !isControlGroup(c.orderId));
+    // Excludes non-synthetic cases (e.g. a real Try It Yourself order) from the canonical batch.
+    const syntheticCases = allCases.filter((c) => amountByOrderId.has(c.orderId));
+
+    const treatmentCases = syntheticCases.filter((c) => !isControlGroup(c.orderId));
     const treatmentAtRiskPaise = treatmentCases.reduce((sum, c) => {
         return sum + (amountByOrderId.get(c.orderId) ?? 0);
     }, 0);
 
-    const controlCases = allCases.filter((c) => isControlGroup(c.orderId));
+    const controlCases = syntheticCases.filter((c) => isControlGroup(c.orderId));
 
     const recoveredCases = treatmentCases.filter((c) => c.status === "RECOVERED");
     const confirmedRecoveredPaise = recoveredCases.reduce((sum, c) => {

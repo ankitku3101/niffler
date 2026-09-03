@@ -62,7 +62,7 @@ export function DiagnosisCard({ diagnosis }: { diagnosis: DiagnosisOutput }) {
       </div>
       <p className="text-muted-foreground">{diagnosis.diagnosis}</p>
       {diagnosis.evidence.length > 0 && (
-        <ul className="mt-2 list-disc pl-5 text-xs text-muted-foreground">
+        <ul className="mt-3 list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
           {diagnosis.evidence.map((e, idx) => (
             <li key={idx}>{e}</li>
           ))}
@@ -82,7 +82,7 @@ export function PolicyCard({ policy }: { policy: PolicyOutput }) {
           <span className="text-xs text-muted-foreground">— overrode the agent&apos;s proposal</span>
         )}
       </div>
-      <ul className="list-disc pl-5 text-xs text-muted-foreground">
+      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">
         {policy.reasons.map((r, idx) => (
           <li key={idx}>{r}</li>
         ))}

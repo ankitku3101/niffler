@@ -37,7 +37,7 @@ export default function LandingPage() {
             Detect → Investigate → Diagnose → Decide → Policy check → Act →
             Observe
           </p>
-          <Link href="/dashboard" className="group mt-10 inline-block">
+          <Link href="/dashboard/welcome" className="group mt-10 inline-block">
             <LinkPendingBridge />
             <HoverBorderGradient
               as="div"

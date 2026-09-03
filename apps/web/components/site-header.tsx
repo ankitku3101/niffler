@@ -4,20 +4,17 @@ import { usePathname } from "next/navigation"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/mode-toggle"
-import { RunButton } from "@/components/run-button"
-import { ResetButton } from "@/components/reset-button"
-import type { RunGateStatus } from "@/lib/runStatus"
 
 const titles: Record<string, string> = {
+  "/dashboard/welcome": "Welcome",
   "/dashboard": "Command Center",
-  "/dashboard/help": "Help",
   "/dashboard/live": "Agent Run",
   "/dashboard/cases": "Decision Explorer",
   "/dashboard/simulate": "Try It Yourself",
   "/dashboard/policies": "Policy Guardrails",
 }
 
-export function SiteHeader({ runStatus }: { runStatus: RunGateStatus }) {
+export function SiteHeader() {
   const pathname = usePathname()
   const title = titles[pathname] ?? "NIFFLER"
 
@@ -29,10 +26,8 @@ export function SiteHeader({ runStatus }: { runStatus: RunGateStatus }) {
           orientation="vertical"
           className="mx-2 h-4 data-vertical:self-auto"
         />
-        <h1 className="text-base font-medium">{title}</h1>
+        <h1 className="text-base font-medium text-muted-foreground">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
-          <ResetButton />
-          <RunButton initialStatus={runStatus} />
           <ModeToggle />
         </div>
       </div>

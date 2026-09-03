@@ -16,12 +16,12 @@ import { RadarIcon } from "lucide-react"
 
 const navMain = [
   {
-    title: "Command Center",
-    url: "/dashboard",
+    title: "Welcome",
+    url: "/dashboard/welcome",
   },
   {
-    title: "Help",
-    url: "/dashboard/help",
+    title: "Command Center",
+    url: "/dashboard",
   },
   {
     title: "Agent Run",

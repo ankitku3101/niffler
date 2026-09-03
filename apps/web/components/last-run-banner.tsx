@@ -16,8 +16,9 @@ export function LastRunBanner({ run }: { run: LastRun }) {
 
   return (
     <p className="px-4 text-sm text-muted-foreground lg:px-6">
-      Last run {when} · {run.processed} processed, {run.succeeded} succeeded,{" "}
-      {run.failed} failed · triggered by {run.triggeredBy}
+      Most recent click ({when}, by {run.triggeredBy}): {run.processed} case{run.processed === 1 ? "" : "s"}{" "}
+      processed, {run.succeeded} succeeded, {run.failed} failed. The totals below are cumulative across
+      every run, not just this one.
     </p>
   )
 }

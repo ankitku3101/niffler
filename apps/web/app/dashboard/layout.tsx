@@ -1,15 +1,12 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { getRunStatus } from "@/lib/runStatus"
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const runStatus = await getRunStatus()
-
   return (
     <SidebarProvider
       style={
@@ -21,7 +18,7 @@ export default async function DashboardLayout({
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader runStatus={runStatus} />
+        <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             {children}

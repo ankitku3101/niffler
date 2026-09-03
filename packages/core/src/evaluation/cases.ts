@@ -16,7 +16,7 @@ export interface CaseSummary {
   policyOverridden: boolean;
 }
 
-export async function listCases(dataSource: PaymentDataSource): Promise<CaseSummary[]> {
+export async function listCases(dataSource: PaymentDataSource, fallback?: PaymentDataSource): Promise<CaseSummary[]> {
   const orders = await dataSource.listOrders(toIso(DETECTION_CUTOFF));
   const amountByOrderId = new Map(orders.map((o) => [o.id, o.amount_paise]));
 
@@ -29,19 +29,25 @@ export async function listCases(dataSource: PaymentDataSource): Promise<CaseSumm
     policyRows.filter((row) => (row.output as { decision: string }).decision !== "ALLOWED").map((row) => row.caseId)
   );
 
-  return cases.map((c) => {
-    const diagnosis = diagnosisByCaseId.get(c.id);
-    return {
-      id: c.id,
-      orderId: c.orderId,
-      status: c.status,
-      amountPaise: amountByOrderId.get(c.orderId) ?? 0,
-      diagnosis: diagnosis?.diagnosis ?? null,
-      recommendedAction: diagnosis?.recommendedAction ?? null,
-      confidence: diagnosis?.confidence ?? null,
-      policyOverridden: overriddenCaseIds.has(c.id),
-    };
-  });
+  return Promise.all(
+    cases.map(async (c) => {
+      const diagnosis = diagnosisByCaseId.get(c.id);
+      let amountPaise = amountByOrderId.get(c.orderId);
+      if (amountPaise === undefined && fallback) {
+        amountPaise = (await fallback.getOrder(c.orderId))?.amount_paise;
+      }
+      return {
+        id: c.id,
+        orderId: c.orderId,
+        status: c.status,
+        amountPaise: amountPaise ?? 0,
+        diagnosis: diagnosis?.diagnosis ?? null,
+        recommendedAction: diagnosis?.recommendedAction ?? null,
+        confidence: diagnosis?.confidence ?? null,
+        policyOverridden: overriddenCaseIds.has(c.id),
+      };
+    })
+  );
 }
 
 export interface CaseDetail {
@@ -60,12 +66,13 @@ export interface CaseDetail {
 
 export async function getCaseDetail(
   dataSource: PaymentDataSource,
-  caseId: number
+  caseId: number,
+  fallback?: PaymentDataSource
 ): Promise<CaseDetail | null> {
   const [caseRow] = await db.select().from(recoveryCases).where(eq(recoveryCases.id, caseId)).limit(1);
   if (!caseRow) return null;
 
-  const order = await dataSource.getOrder(caseRow.orderId);
+  const order = (await dataSource.getOrder(caseRow.orderId)) ?? (await fallback?.getOrder(caseRow.orderId));
   const auditRows = await db
     .select()
     .from(auditLog)
