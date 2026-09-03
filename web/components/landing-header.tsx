@@ -3,14 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { LinkPendingBridge } from "@/components/link-pending-bridge";
 import { cn } from "@/lib/utils";
 
-/**
- * Sits as an overlay on top of the hero's shader at rest — transparent, no
- * border — and only picks up the blurred-dark bar treatment once the page
- * has scrolled past the hero, where it needs to read against real content
- * rather than sky.
- */
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -49,6 +44,7 @@ export function LandingHeader() {
                 : "border-white/30 text-white hover:border-white hover:bg-white/10",
             )}
           >
+            <LinkPendingBridge />
             Dashboard
           </Link>
           <ModeToggle

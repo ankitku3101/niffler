@@ -44,8 +44,6 @@ export function HoverBorderGradient({
       "radial-gradient(16.2% 41.199999999999996% at 100% 50%, hsl(0, 0%, 100%) 0%, rgba(255, 255, 255, 0) 100%)",
   };
 
-  // Retinted from the component's default #3275F8 — that default sits in the
-  // same violet-leaning blue range this project deliberately avoids elsewhere.
   const highlight =
     "radial-gradient(75% 181.15942028985506% at 50% 50%, #1f7fae 0%, rgba(255, 255, 255, 0) 100%)";
 

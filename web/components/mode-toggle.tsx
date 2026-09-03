@@ -9,9 +9,6 @@ import { cn } from "@/lib/utils";
 export function ModeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
-
-  // Avoid a hydration mismatch: resolvedTheme is unknown on the server and
-  // on first client render, so render a neutral placeholder until mounted.
   React.useEffect(() => setMounted(true), []);
 
   return (

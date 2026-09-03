@@ -6,15 +6,10 @@ import { cn } from "@/lib/utils";
 export type CloudShaderProps = {
   className?: string;
   children?: React.ReactNode;
-  /** Animation speed multiplier. 1 = default drift. */
   speed?: number;
-  /** Number of clouds (1-6). */
   count?: number;
-  /** Cloud tint color (hex or rgb string). */
   cloudColor?: string;
-  /** Sky color at the top (hex or rgb string). */
   skyTopColor?: string;
-  /** Sky color at the bottom (hex or rgb string). */
   skyBottomColor?: string;
 };
 
@@ -27,10 +22,6 @@ void main() {
 }
 `;
 
-// Original cloud shader for Aceternity UI.
-// Each cloud is an asymmetric envelope (dome top, flat base) filled with
-// domain-warped billow noise. A second density sample above the pixel
-// approximates self-shadowing. Clouds drift horizontally and wrap around.
 const FRAG = `
 precision highp float;
 
@@ -71,7 +62,6 @@ float fbm(vec2 p) {
   return sum;
 }
 
-// billow noise: sharp puffy ridges, like cauliflower cloud tops
 float billow(vec2 p) {
   float sum = 0.0;
   float amp = 0.5;
@@ -83,16 +73,13 @@ float billow(vec2 p) {
   return sum;
 }
 
-// raw density for one cloud at point p
 float cloudDensity(vec2 p, vec2 c, vec2 r, float seed, float t) {
   vec2 q = p - c;
 
-  // envelope: dome above the center, flat base below
   float ry = q.y > 0.0 ? r.y : r.y * 0.42;
   float env = 1.0 - length(vec2(q.x / r.x, q.y / ry));
   if (env < -0.35) return 0.0;
 
-  // domain-warped billow detail, moves with the cloud, evolves slowly
   vec2 dp = q * (2.4 / r.x) + seed;
   dp += 0.6 * vec2(
     fbm(dp * 1.4 + t * 0.04),
@@ -103,12 +90,10 @@ float cloudDensity(vec2 p, vec2 c, vec2 r, float seed, float t) {
   return env + (detail - 0.62) * 0.62;
 }
 
-// shades one cloud and blends it over the current color
 vec3 shadeCloud(vec3 color, vec3 sky, vec2 p, vec2 c, vec2 r, float seed, float t, float dist) {
   float d = cloudDensity(p, c, r, seed, t);
   if (d < 0.02) return color;
 
-  // sample density toward the sun (straight up) for self-shadowing
   float dUp = cloudDensity(p + vec2(0.0, r.y * 0.55), c, r, seed, t);
   float occl = clamp((dUp - d) * 1.1 + d * 0.55, 0.0, 1.0);
 
@@ -118,18 +103,15 @@ vec3 shadeCloud(vec3 color, vec3 sky, vec2 p, vec2 c, vec2 r, float seed, float 
 
   float alpha = smoothstep(0.02, 0.38, d);
 
-  // silver lining on thin edges
   float rim = smoothstep(0.02, 0.14, d) * (1.0 - smoothstep(0.14, 0.40, d));
   cloudCol += rim * 0.10;
 
-  // atmospheric perspective: far clouds fade into the sky
   cloudCol = mix(cloudCol, sky, dist * 0.35);
   alpha *= mix(1.0, 0.8, dist);
 
   return mix(color, cloudCol, alpha);
 }
 
-// one drifting cloud: horizontal wrap + gentle vertical bob
 vec3 cloudPass(vec3 color, vec3 sky, vec2 p, float aspect, float t,
                float spd, float phase, float y, vec2 r, float seed, float dist) {
   float cx = mix(-r.x - 0.25, aspect + r.x + 0.25, fract(t * spd + phase));
@@ -145,15 +127,12 @@ void main() {
   vec3 sky = mix(u_skyBottom, u_skyTop, v_uv.y);
   vec3 color = sky;
 
-  // faint haze band near the horizon
   color = mix(color, u_skyBottom * 1.06, smoothstep(0.35, 0.0, v_uv.y) * 0.5);
 
-  // soft sun glow, upper area
   vec2 sunPos = vec2(aspect * 0.78, 0.92);
   float sunDist = length(p - sunPos);
   color += vec3(1.0, 0.95, 0.82) * exp(-sunDist * sunDist * 5.0) * 0.28;
 
-  // thin cirrus streaks, stretched horizontally, high in the sky
   float cirrusBand = smoothstep(0.55, 0.8, v_uv.y) * (1.0 - smoothstep(0.9, 1.0, v_uv.y));
   if (cirrusBand > 0.01) {
     float streak = fbm(vec2(p.x * 1.6 - t * 0.006, p.y * 12.0));
@@ -161,7 +140,6 @@ void main() {
     color = mix(color, u_cloud * 0.98, wisp * 0.35);
   }
 
-  // far layer: small, high, slow
   if (u_count > 5.5) {
     color = cloudPass(color, sky, p, aspect, t, 0.006, 0.10, 0.84, vec2(0.20, 0.10), 43.7, 1.0);
   }
@@ -169,7 +147,6 @@ void main() {
     color = cloudPass(color, sky, p, aspect, t, 0.008, 0.62, 0.73, vec2(0.24, 0.12), 71.3, 0.85);
   }
 
-  // middle layer
   if (u_count > 3.5) {
     color = cloudPass(color, sky, p, aspect, t, 0.011, 0.33, 0.60, vec2(0.34, 0.16), 17.3, 0.55);
   }
@@ -177,7 +154,6 @@ void main() {
     color = cloudPass(color, sky, p, aspect, t, 0.013, 0.80, 0.47, vec2(0.30, 0.15), 29.9, 0.45);
   }
 
-  // near layer: big, low, fast
   if (u_count > 1.5) {
     color = cloudPass(color, sky, p, aspect, t, 0.016, 0.05, 0.35, vec2(0.46, 0.20), 91.1, 0.15);
   }
@@ -331,8 +307,6 @@ export const CloudShader = ({
       gl.uniform3f(loc.skyTop, skyTop[0], skyTop[1], skyTop[2]);
       gl.uniform3f(loc.skyBottom, skyBottom[0], skyBottom[1], skyBottom[2]);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      // Reduced motion: the scene is already frozen (elapsed stays 0), so
-      // draw exactly one frame instead of looping requestAnimationFrame forever.
       if (!reduceMotion) frame = requestAnimationFrame(draw);
     };
 

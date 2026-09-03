@@ -49,18 +49,13 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Hallmark · genre: modern-minimal · macrostructure: Marquee Hero · theme: Cobalt (body face swapped: Manrope, not Inter, per explicit request) · enrichment: bespoke WebGL cloud shader (retinted cobalt, confined to hero fold — a deliberate override of Cobalt's default no-background-texture rule) · nav: N1a minimal (wordmark + one link, single real destination) · footer: Ft2 inline single line */
 :root {
-  /* Cool engineered near-white paper, hue ~250 — never #fff */
   --background: oklch(98.5% 0.004 250);
   --foreground: oklch(24% 0.02 258);
   --card: oklch(98.5% 0.004 250);
   --card-foreground: oklch(24% 0.02 258);
   --popover: oklch(98.5% 0.004 250);
   --popover-foreground: oklch(24% 0.02 258);
-  /* Electric cyan-blue — the one accent, used sparingly. Hue 236, not 256:
-     shifted away from the violet-leaning ~256-260 range, which reads as
-     Facebook/corporate blue at this chroma and lightness. */
   --primary: oklch(58% 0.16 236);
   --primary-foreground: oklch(99% 0.005 236);
   --secondary: oklch(95% 0.006 250);
@@ -90,9 +85,6 @@
 }
 
 .dark {
-  /* Near-black, not the graphite-band mid-dark this had before — kept a hair
-     off literal #000 (oklch 0% would band on gradients/anti-aliased edges)
-     but dark enough to read as true black at a glance. */
   --background: oklch(7% 0.006 260);
   --foreground: oklch(95% 0.008 256);
   --card: oklch(10% 0.008 260);
