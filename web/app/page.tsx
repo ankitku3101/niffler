@@ -2,30 +2,15 @@ import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 import { CloudShader } from "@/components/ui/cloud-shader";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
-import { ModeToggle } from "@/components/mode-toggle";
+import { LandingHeader } from "@/components/landing-header";
 
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/75 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <span className="font-heading text-sm font-semibold tracking-[0.02em]">
-            NIFFLER
-          </span>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="inline-flex h-9 items-center whitespace-nowrap rounded-sm border border-border px-4 text-sm font-medium text-foreground/90 transition-colors duration-200 ease-out hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]"
-            >
-              Dashboard
-            </Link>
-            <ModeToggle className="cursor-pointer"/>
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
 
       {/* Hero — Marquee: the fold is one statement, no CTA in fold. */}
-      <section className="relative flex min-h-[clamp(60vh,75dvh,88dvh)] items-end overflow-hidden">
+      <section className="relative flex min-h-[clamp(75vh,92dvh,100dvh)] items-end overflow-hidden">
         <CloudShader
           className="absolute inset-0"
           cloudColor="#eef3f5"
@@ -62,15 +47,16 @@ export default function LandingPage() {
           Detect → Investigate → Diagnose → Decide → Policy check → Act →
           Observe
         </p>
-        <HoverBorderGradient
-          as="a"
-          href="/dashboard"
-          containerClassName="group mt-10 rounded-full"
-          className="flex items-center gap-2 bg-white text-sm font-medium text-black dark:bg-black dark:text-white"
-        >
-          See NIFFLER in action
-          <ArrowRightIcon className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
-        </HoverBorderGradient>
+        <Link href="/dashboard" className="group mt-10 inline-block">
+          <HoverBorderGradient
+            as="div"
+            containerClassName="rounded-full"
+            className="flex items-center gap-2 bg-white text-sm font-medium text-black dark:bg-black dark:text-white"
+          >
+            See NIFFLER in action
+            <ArrowRightIcon className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+          </HoverBorderGradient>
+        </Link>
       </section>
 
       <footer className="border-t border-border/70">
