@@ -1,0 +1,57 @@
+{
+  "name": "@niffler/core",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check:rng": "tsx scripts/check-rng.ts",
+    "check:world": "tsx scripts/check-world.ts",
+    "check:payments": "tsx scripts/check-payments.ts",
+    "check:scenarios": "tsx scripts/check-scenarios.ts",
+    "check:datasource": "tsx scripts/check-datasource.ts",
+    "check:detection": "tsx scripts/check-detection.ts",
+    "check:db": "tsx scripts/check-db.ts",
+    "check:cases": "tsx scripts/check-cases.ts",
+    "check:tools": "tsx scripts/check-tools.ts",
+    "check:policy": "tsx scripts/check-policy.ts",
+    "check:agent": "tsx scripts/check-agent.ts",
+    "check:investigate": "tsx scripts/check-investigate.ts",
+    "check:fallback": "tsx scripts/check-fallback.ts",
+    "check:recover": "tsx scripts/check-recover.ts",
+    "reset": "tsx scripts/reset.ts",
+    "check:holdout": "tsx scripts/check-holdout.ts",
+    "batch": "tsx scripts/run-batch.ts",
+    "report": "tsx scripts/report.ts",
+    "requeue-blank": "tsx scripts/requeue-blank-cases.ts",
+    "check:razorpay": "tsx scripts/check-razorpay.ts",
+    "check:verify-payment": "tsx scripts/check-verify-payment.ts",
+    "check:razorpay-datasource": "tsx scripts/check-razorpay-datasource.ts",
+    "seed-live-case": "tsx scripts/seed-live-case.ts",
+    "check:recover-live": "tsx scripts/check-recover-live.ts",
+    "reset-live-case": "tsx scripts/reset-live-case.ts",
+    "check:recovery-link": "tsx scripts/check-recovery-link.ts",
+    "webhook-server": "tsx scripts/webhook-server.ts"
+  },
+  "dependencies": {
+    "@google/genai": "^2.19.0",
+    "@hono/node-server": "^2.1.1",
+    "drizzle-orm": "^0.45.2",
+    "groq-sdk": "^1.6.0",
+    "hono": "^4.13.5",
+    "postgres": "^3.4.9",
+    "razorpay": "^2.9.8",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
