@@ -75,17 +75,23 @@ export function SimulatePanel() {
 
   async function pollForOutcome(id: string, attempt = 0) {
     setPhase("polling")
-    const { data } = await apiClient.get<{ status: string }>(`/simulate/order/${id}/status`)
+    try {
+      const { data } = await apiClient.get<{ status: string }>(`/simulate/order/${id}/status`)
 
-    if (data.status === "paid") {
-      setPhase("paid")
-      return
-    }
-    if (data.status === "attempted") {
-      const { data: caseData } = await apiClient.post<{ caseId: number }>(`/simulate/order/${id}/case`)
-      setCaseId(caseData.caseId)
-      setRunFinished(false)
-      setPhase("recovering")
+      if (data.status === "paid") {
+        setPhase("paid")
+        return
+      }
+      if (data.status === "attempted") {
+        const { data: caseData } = await apiClient.post<{ caseId: number }>(`/simulate/order/${id}/case`)
+        setCaseId(caseData.caseId)
+        setRunFinished(false)
+        setPhase("recovering")
+        return
+      }
+    } catch {
+      setPhase("error")
+      setErrorMessage("Lost the connection while checking on that payment. Try again in a moment.")
       return
     }
     if (attempt >= MAX_POLL_ATTEMPTS) {

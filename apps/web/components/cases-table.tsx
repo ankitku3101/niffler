@@ -59,6 +59,7 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState<CaseDetail | null>(null)
+  const [error, setError] = useState(false)
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [guardrailOnly, setGuardrailOnly] = useState(false)
   const [showLegend, setShowLegend] = useState(false)
@@ -66,9 +67,16 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
   async function openCase(id: number) {
     setOpen(true)
     setLoading(true)
-    const detail = await getCaseDetail(id)
-    setSelected(detail)
-    setLoading(false)
+    setError(false)
+    setSelected(null)
+    try {
+      const detail = await getCaseDetail(id)
+      setSelected(detail)
+    } catch {
+      setError(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const guardrailCount = cases.filter((c) => c.policyOverridden).length
@@ -171,13 +179,18 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent className="sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle>{selected ? selected.orderId : "Loading…"}</SheetTitle>
+            <SheetTitle>{selected ? selected.orderId : error ? "Data unavailable" : "Loading…"}</SheetTitle>
             <SheetDescription>
               {selected ? `${selected.status} — ${formatPaise(selected.amountPaise)}` : ""}
             </SheetDescription>
           </SheetHeader>
           <div className="flex flex-col gap-3 overflow-y-auto px-4 pb-4">
             {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
+            {error && (
+              <p className="text-sm text-muted-foreground">
+                Couldn&apos;t load this case&apos;s details right now. Try again in a moment.
+              </p>
+            )}
             {selected && <CaseTimeline auditTrail={selected.auditTrail} />}
           </div>
         </SheetContent>

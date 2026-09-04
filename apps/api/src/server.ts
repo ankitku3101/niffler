@@ -137,12 +137,15 @@ app.post("/run", async (req, res) => {
     }
   }
 
-  const [run] = await db
-    .insert(agentRuns)
-    .values({ caseLimit: PUBLIC_RUN_LIMIT, triggeredBy: bypass ? "owner" : "public" })
-    .returning();
-
+  // Wraps the insert too, not just the batch run — a DB outage should fail
+  // this whole request the same way, not just the work after the first write.
+  let run: typeof agentRuns.$inferSelect | undefined;
   try {
+    [run] = await db
+      .insert(agentRuns)
+      .values({ caseLimit: PUBLIC_RUN_LIMIT, triggeredBy: bypass ? "owner" : "public" })
+      .returning();
+
     const dataSource = new JsonPaymentDataSource();
     const llmClient = new FallbackLlmClient(new GroqClient(), new GeminiClient());
     const summary = await runBatch(dataSource, llmClient, MAX_ATTEMPTS, PUBLIC_RUN_LIMIT);
@@ -154,9 +157,15 @@ app.post("/run", async (req, res) => {
 
     res.json({ ok: true, summary });
   } catch (error) {
-    await db.update(agentRuns).set({ finishedAt: new Date() }).where(eq(agentRuns.id, run!.id));
     console.error("batch run failed:", error);
-    res.status(500).json({ ok: false });
+    if (run) {
+      await db
+        .update(agentRuns)
+        .set({ finishedAt: new Date() })
+        .where(eq(agentRuns.id, run.id))
+        .catch((cleanupError) => console.error("failed to mark run finished after error:", cleanupError));
+    }
+    res.status(503).json({ ok: false, error: "data unavailable" });
   }
 });
 
@@ -195,6 +204,20 @@ app.post("/webhook/razorpay", express.text({ type: "*/*" }), async (req, res) =>
   }
 
   res.status(200).send("ok");
+});
+
+// Backstop for every route above that has no local try/catch (e.g. the DB
+// dying mid-query on /report, /cases, /run/status, /run/last). Express 5
+// forwards a rejected async handler here automatically. Must stay a 4-arg
+// function — Express only registers it as error middleware because of the
+// arity, an unused req/next included.
+app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error("unhandled request error:", err);
+  if (res.headersSent) {
+    res.end();
+    return;
+  }
+  res.status(503).json({ error: "data unavailable" });
 });
 
 const port = Number(process.env.PORT ?? 4000);
