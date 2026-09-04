@@ -7,6 +7,10 @@ import { getReport } from "@/lib/report"
 import { getLastRun } from "@/lib/lastRun"
 import { getRunStatus } from "@/lib/runStatus"
 
+// Data comes over axios, which Next cannot instrument the way it does fetch — without this the page
+// is prerendered once at build time and every metric silently freezes there.
+export const dynamic = "force-dynamic"
+
 export default async function Page() {
   const [report, lastRun, runStatus] = await Promise.all([getReport(), getLastRun(), getRunStatus()])
 
@@ -16,11 +20,11 @@ export default async function Page() {
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Command Center</h1>
           <p className="mt-1.5 max-w-[65ch] text-base text-muted-foreground">
-            The outcome of NIFFLER&apos;s work on a fixed, synthetic batch of ~500 seeded orders — see{" "}
+            How NIFFLER has done on a fixed set of 500 made-up orders. See{" "}
             <Link href="/dashboard/welcome" className="text-primary underline">
-              Welcome
+              Getting Started
             </Link>{" "}
-            for where that data comes from.
+            for where this data comes from.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
@@ -28,7 +32,7 @@ export default async function Page() {
             <ResetButton />
             <RunButton initialStatus={runStatus} />
           </div>
-          <p className="text-xs text-muted-foreground">Processes up to 10 unhandled cases · takes a minute or two</p>
+          <p className="text-sm text-muted-foreground">Handles up to 10 new cases · takes a minute or two</p>
         </div>
       </div>
       <LastRunBanner run={lastRun} />

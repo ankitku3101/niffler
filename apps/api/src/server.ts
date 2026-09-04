@@ -13,6 +13,8 @@ import { RazorpayDataSource } from "@niffler/core/data/razorpayDataSource";
 import { db } from "@niffler/core/db/client";
 import { agentRuns, recoveryCases } from "@niffler/core/db/schema";
 import { resetRecovery } from "@niffler/core/cases/resetRecovery";
+import { compareToBaseline } from "@niffler/core/evaluation/baseline";
+import { summariseDataset } from "@niffler/core/evaluation/dataset";
 import { generateReport } from "@niffler/core/evaluation/report";
 import { runBatch } from "@niffler/core/evaluation/runBatch";
 import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
@@ -47,6 +49,14 @@ app.get("/health", (_req, res) => {
 app.get("/report", async (_req, res) => {
   const report = await generateReport(new JsonPaymentDataSource());
   res.json(report);
+});
+
+app.get("/dataset", async (_req, res) => {
+  res.json(await summariseDataset(new JsonPaymentDataSource()));
+});
+
+app.get("/baseline", async (_req, res) => {
+  res.json(await compareToBaseline(new JsonPaymentDataSource()));
 });
 
 app.get("/run/status", async (_req, res) => {

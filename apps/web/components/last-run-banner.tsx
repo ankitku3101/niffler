@@ -4,7 +4,7 @@ export function LastRunBanner({ run }: { run: LastRun }) {
   if (!run) {
     return (
       <p className="px-4 text-sm text-muted-foreground lg:px-6">
-        No runs yet — click Run Recovery Agent to start.
+        Nobody has run the agent yet. Click Run Recovery Agent to start.
       </p>
     )
   }
@@ -16,9 +16,9 @@ export function LastRunBanner({ run }: { run: LastRun }) {
 
   return (
     <p className="px-4 text-sm text-muted-foreground lg:px-6">
-      Most recent click ({when}, by {run.triggeredBy}): {run.processed} case{run.processed === 1 ? "" : "s"}{" "}
-      processed, {run.succeeded} succeeded, {run.failed} failed. The totals below are cumulative across
-      every run, not just this one.
+      Last run ({when}, by {run.triggeredBy}): {run.processed} case{run.processed === 1 ? "" : "s"} handled,{" "}
+      {run.succeeded} worked, {run.failed} failed. The numbers below cover every run so far, not just this
+      one.
     </p>
   )
 }

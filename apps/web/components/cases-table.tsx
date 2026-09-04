@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { formatPaise } from "@/lib/format"
 import { getCaseDetail, type CaseDetail, type CaseSummary } from "@/lib/cases"
 import { CaseTimeline } from "@/components/case-timeline"
-import { RECOMMENDED_ACTION_LABELS } from "@/components/timeline-cards"
+import { RECOMMENDED_ACTION_LABELS } from "@/lib/labels"
 
 const statusVariant: Record<
   string,
@@ -45,14 +45,14 @@ const STATUS_ORDER = [
 ] as const
 
 const STATUS_LEGEND: Record<string, string> = {
-  DETECTED: "Flagged as a recovery candidate; not yet investigated.",
-  INVESTIGATING: "Agent is gathering context — order, payment history, customer history.",
-  ACTION_PLANNED: "Diagnosis complete; policy check in progress.",
-  ACTION_EXECUTED: "A recovery link was sent; outcome not yet confirmed.",
-  RECOVERED: "Payment captured or link paid — revenue confirmed recovered.",
-  ESCALATED: "Routed to a human — policy required approval, or the agent judged it ambiguous.",
-  STOPPED: "Policy denied further action — already paid, or judged unrecoverable.",
-  FAILED: "Recovery action failed for a technical reason.",
+  DETECTED: "Found and waiting. Nobody has looked at it yet.",
+  INVESTIGATING: "The agent is reading the order and the customer's history right now.",
+  ACTION_PLANNED: "The agent has decided. The rules are checking that decision.",
+  ACTION_EXECUTED: "A payment link was sent. Waiting to see if the customer pays.",
+  RECOVERED: "The money came in.",
+  ESCALATED: "Handed to a person, either because the rules said so or because the agent was unsure.",
+  STOPPED: "The rules said stop. Usually because it was already paid, or there was nothing left to try.",
+  FAILED: "Something broke while trying to act on it.",
 }
 
 export function CasesTable({ cases }: { cases: CaseSummary[] }) {
@@ -129,7 +129,7 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
                 <ShieldAlert className="size-3" /> Guardrail
               </dt>
               <dd className="text-muted-foreground">
-                Policy overrode the agent&apos;s proposed action — denied it outright, or routed it to a human.
+                The rules overruled the AI. They either blocked it outright or handed it to a person.
               </dd>
             </div>
           )}
@@ -138,14 +138,16 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
 
       {!showLegend && <div className="mb-3" />}
 
-      <Table className="table-fixed min-w-190">
+      {/* Below sm, only status and diagnosis survive — the rest is one tap away in the case sheet. */}
+      <Table className="table-fixed min-w-0 sm:min-w-190">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-24 truncate">Order</TableHead>
-            <TableHead className="w-32.5 truncate">Status</TableHead>
-            <TableHead className="w-16 truncate">Amount</TableHead>
-            <TableHead className="w-80">Diagnosis</TableHead>
-            <TableHead className="w-40">Recommended Action</TableHead>
+            <TableHead className="hidden w-24 truncate sm:table-cell">Order</TableHead>
+            <TableHead className="w-32 truncate sm:w-32.5">Status</TableHead>
+            <TableHead className="hidden truncate sm:table-cell sm:w-18">Amount</TableHead>
+            {/* auto on mobile: absorbs the leftover width instead of forcing the table off-screen. */}
+            <TableHead className="w-auto sm:w-80">Diagnosis</TableHead>
+            <TableHead className="hidden w-40 sm:table-cell">Recommended Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -155,7 +157,7 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
               className="cursor-pointer"
               onClick={() => openCase(c.id)}
             >
-              <TableCell className="truncate" title={c.orderId}>{c.orderId}</TableCell>
+              <TableCell className="hidden truncate sm:table-cell" title={c.orderId}>{c.orderId}</TableCell>
               <TableCell className="overflow-hidden">
                 <div className="flex items-center gap-1.5">
                   <Badge variant={statusVariant[c.status] ?? "outline"}>
@@ -164,14 +166,14 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
                   {c.policyOverridden && <ShieldAlert className="size-3.5 shrink-0 text-muted-foreground" />}
                 </div>
               </TableCell>
-              <TableCell className="truncate">{formatPaise(c.amountPaise)}</TableCell>
-              <TableCell
-                className="line-clamp-3 py-2.5 text-sm leading-snug whitespace-normal"
-                title={c.diagnosis ?? undefined}
-              >
-                {c.diagnosis ?? "—"}
+              <TableCell className="hidden truncate sm:table-cell">{formatPaise(c.amountPaise)}</TableCell>
+              {/* Clamp on an inner div — -webkit-box on a cell fights table-cell and bleeds a half line. */}
+              <TableCell className="py-2.5 align-top text-sm whitespace-normal">
+                <div className="line-clamp-3 leading-snug" title={c.diagnosis ?? undefined}>
+                  {c.diagnosis ?? "—"}
+                </div>
               </TableCell>
-              <TableCell className="text-sm whitespace-normal">
+              <TableCell className="hidden align-top text-sm whitespace-normal text-muted-foreground sm:table-cell">
                 {c.recommendedAction ? RECOMMENDED_ACTION_LABELS[c.recommendedAction] ?? c.recommendedAction : "—"}
               </TableCell>
             </TableRow>

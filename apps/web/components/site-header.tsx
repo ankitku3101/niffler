@@ -6,12 +6,14 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/mode-toggle"
 
 const titles: Record<string, string> = {
-  "/dashboard/welcome": "Welcome",
+  "/dashboard/welcome": "Getting Started",
   "/dashboard": "Command Center",
   "/dashboard/live": "Agent Run",
   "/dashboard/cases": "Decision Explorer",
   "/dashboard/simulate": "Try It Yourself",
   "/dashboard/policies": "Policy Guardrails",
+  "/dashboard/baseline": "Agent vs. Rules",
+  "/dashboard/dataset": "The Dataset",
 }
 
 export function SiteHeader() {
@@ -26,9 +28,10 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 h-4 data-vertical:self-auto"
         />
-        <h1 className="text-base font-medium text-muted-foreground">{title}</h1>
+        {/* Not an h1 — the page body owns that, and two per page is a screen-reader ambiguity. */}
+        <span className="text-base font-medium text-muted-foreground">{title}</span>
         <div className="ml-auto flex items-center gap-2">
-          <ModeToggle />
+          <ModeToggle className="size-7 rounded-lg border-transparent" />
         </div>
       </div>
     </header>

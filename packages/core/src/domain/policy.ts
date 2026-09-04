@@ -59,12 +59,14 @@ export function checkAttemptLimit(attempts: Payment[], maxAttempts: number): { d
 
     const failedAttempts = attempts.filter( attempt => attempt.status === "failed").length
 
+    const attemptWord = failedAttempts === 1 ? "attempt" : "attempts";
+
     if(failedAttempts<maxAttempts) {
         decision = "ALLOWED";
-        reason = `${failedAttempts} Attempts done; Eligible for another payment attempt`; 
+        reason = `${failedAttempts} failed ${attemptWord} so far, under the limit of ${maxAttempts}; another attempt is allowed`;
     } else {
         decision = "REQUIRES_HUMAN_APPROVAL";
-        reason = `${failedAttempts} Attempts done; Not eligible for another payment attempt; max attempts limit reached.`
+        reason = `${failedAttempts} failed ${attemptWord}, at the limit of ${maxAttempts}; further attempts need human approval`;
     }
 
     const result = { decision, reason }

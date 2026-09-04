@@ -85,11 +85,12 @@
 }
 
 .dark {
-  --background: oklch(7% 0.006 260);
+  /* Near-black, but with enough chroma to read as blue-black rather than flat #000. */
+  --background: oklch(8% 0.018 262);
   --foreground: oklch(95% 0.008 256);
-  --card: oklch(10% 0.008 260);
+  --card: oklch(12.5% 0.016 262);
   --card-foreground: oklch(95% 0.008 256);
-  --popover: oklch(10% 0.008 260);
+  --popover: oklch(12.5% 0.016 262);
   --popover-foreground: oklch(95% 0.008 256);
   --primary: oklch(66% 0.15 236);
   --primary-foreground: oklch(10% 0.02 258);

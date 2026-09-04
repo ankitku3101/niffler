@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Manrope, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LayoutTransition } from "@/components/layout-transition";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -23,7 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NIFFLER — Autonomous Revenue Recovery",
+  title: "NIFFLER | Autonomous Revenue Recovery",
   description:
     "NIFFLER finds revenue hiding in failed payments, investigates why it was lost, and attempts to recover it within strict, deterministic safety boundaries.",
 };
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider attribute="class" defaultTheme="dark">
           <LayoutTransition>{children}</LayoutTransition>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

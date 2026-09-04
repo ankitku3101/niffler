@@ -15,6 +15,7 @@ export function SectionCards({ report }: { report: NifflerReport }) {
   const recoveryActions = report.recoveredCases + report.actionExecutedCases
   const totalCandidates = report.treatmentCases + report.controlCases
   const liftIsPositive = report.attributableLiftRate >= 0
+  const inRecoveryPaise = report.confirmedRecoveredPaise + report.pendingRecoveryPaise
 
   return (
     <div className="flex flex-col gap-8 px-4 lg:px-6">
@@ -27,26 +28,31 @@ export function SectionCards({ report }: { report: NifflerReport }) {
             </CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 border-t-0 bg-transparent! text-base">
-            <div className="font-medium">{totalCandidates} failed orders detected</div>
+            <div className="font-medium">{totalCandidates} failed orders found</div>
             <div className="text-muted-foreground">
-              {report.controlCases} deliberately left untouched, to measure what NIFFLER actually added
+              {report.controlCases} were left alone on purpose, as a comparison group to show what NIFFLER
+              actually added
             </div>
           </CardFooter>
         </Card>
 
         <Card className="@container/card gap-3 [--card-spacing:--spacing(6)]">
           <CardHeader>
-            <CardDescription className="text-sm">Revenue Recovered</CardDescription>
+            <CardDescription className="text-sm">Revenue in Recovery</CardDescription>
             <CardTitle className="text-4xl font-semibold text-primary tabular-nums @[250px]/card:text-5xl">
-              {formatPaise(report.confirmedRecoveredPaise)}
+              {formatPaise(inRecoveryPaise)}
             </CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 border-t-0 bg-transparent! text-base">
-            <div className="font-medium">Confirmed via capture or a paid recovery link</div>
+            <dl className="grid w-full grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              <dt className="font-medium tabular-nums">{formatPaise(report.confirmedRecoveredPaise)}</dt>
+              <dd className="font-medium">confirmed</dd>
+              <dt className="tabular-nums text-muted-foreground">{formatPaise(report.pendingRecoveryPaise)}</dt>
+              <dd className="text-muted-foreground">waiting on payment links</dd>
+            </dl>
             <div className="text-muted-foreground">
-              {report.pendingRecoveryPaise > 0
-                ? `+ ${formatPaise(report.pendingRecoveryPaise)} pending on outstanding recovery links`
-                : "No recovery links outstanding"}
+              Confirmed means the money is in. The rest are real payment links that have been sent, but
+              these customers are made up, so nobody is ever going to click them.
             </div>
           </CardFooter>
         </Card>
@@ -58,19 +64,21 @@ export function SectionCards({ report }: { report: NifflerReport }) {
               {formatPercent(report.recoveryRate)}
             </CardTitle>
             <CardAction>
-              <Badge variant={liftIsPositive ? "default" : "destructive"}>
+              {/* Not destructive when negative — a synthetic-data artifact, not the agent underperforming. */}
+              <Badge variant={liftIsPositive ? "default" : "outline"} title="Attributable lift vs the control group">
                 {liftIsPositive ? <TrendingUpIcon /> : <TrendingDownIcon />}
-                {formatPercentPoints(report.attributableLiftRate)}
+                {formatPercentPoints(report.attributableLiftRate)} vs control
               </Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 border-t-0 bg-transparent! text-base">
             <div className="font-medium">
-              vs {formatPercent(report.naturalRecoveryRate)} recovered naturally, with no help at all
+              Compared with {formatPercent(report.naturalRecoveryRate)} in the group left alone
             </div>
             <div className="text-muted-foreground">
-              Counts confirmed recoveries only — a negative number here mostly means recoveries are still
-              pending a customer&apos;s payment, not that nothing worked.
+              This only counts money that came in. Since made-up customers never pay a link, the{" "}
+              {formatPaise(report.pendingRecoveryPaise)} above can never be counted here. That is a limit of
+              the test data, not of the agent.
             </div>
           </CardFooter>
         </Card>
@@ -83,8 +91,8 @@ export function SectionCards({ report }: { report: NifflerReport }) {
             <CardTitle className="text-2xl font-semibold tabular-nums">{report.treatmentCases}</CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 border-t-0 bg-transparent! text-sm text-muted-foreground">
-            <div>{report.controlCases} more held out as control</div>
-            <div>{report.notYetProcessedCases > 0 ? `${report.notYetProcessedCases} still queued` : "All processed"}</div>
+            <div>{report.controlCases} more left alone for comparison</div>
+            <div>{report.notYetProcessedCases > 0 ? `${report.notYetProcessedCases} still waiting` : "All done"}</div>
           </CardFooter>
         </Card>
 
@@ -94,7 +102,7 @@ export function SectionCards({ report }: { report: NifflerReport }) {
             <CardTitle className="text-2xl font-semibold tabular-nums">{recoveryActions}</CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 border-t-0 bg-transparent! text-sm text-muted-foreground">
-            <div>{report.recoveredCases} captured, {report.actionExecutedCases} link sent</div>
+            <div>{report.recoveredCases} payments taken, {report.actionExecutedCases} links sent</div>
           </CardFooter>
         </Card>
 
@@ -114,7 +122,7 @@ export function SectionCards({ report }: { report: NifflerReport }) {
             <CardTitle className="text-2xl font-semibold tabular-nums">{report.stoppedCases}</CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 border-t-0 bg-transparent! text-sm text-muted-foreground">
-            <div>Policy denied further action</div>
+            <div>The rules said stop</div>
           </CardFooter>
         </Card>
 
@@ -124,7 +132,7 @@ export function SectionCards({ report }: { report: NifflerReport }) {
             <CardTitle className="text-2xl font-semibold tabular-nums">{report.policyOverrideCount}</CardTitle>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1 border-t-0 bg-transparent! text-sm text-muted-foreground">
-            <div>Denied or needed human approval</div>
+            <div>Times the rules blocked the AI</div>
           </CardFooter>
         </Card>
       </div>

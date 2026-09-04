@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { DECISION_VARIANT, RECOMMENDED_ACTION_LABELS } from "@/lib/labels"
 import { Badge } from "@/components/ui/badge"
 import { formatPaise, formatPercent } from "@/lib/format"
 
@@ -9,24 +10,12 @@ export type PolicyOutput = { decision: string; reasons: string[] }
 export type ActionOutput = { status: string; transitioned?: boolean; amount_paise?: number; link?: string }
 
 export const ACTION_LABELS: Record<string, string> = {
-  capturePayment: "Payment captured",
-  createRecoveryLink: "Recovery link sent",
-  escalateCase: "Escalated to a human",
-  stopRecovery: "Recovery stopped",
+  capturePayment: "Payment taken",
+  createRecoveryLink: "Payment link sent",
+  escalateCase: "Handed to a person",
+  stopRecovery: "Stopped here",
 }
 
-export const RECOMMENDED_ACTION_LABELS: Record<string, string> = {
-  CAPTURE_PAYMENT: "Capture the payment",
-  RECOVERY_LINK: "Send a recovery link",
-  ESCALATE: "Escalate to a human",
-  STOP: "Stop recovery",
-}
-
-export const DECISION_VARIANT: Record<string, "outline" | "destructive" | "secondary"> = {
-  ALLOWED: "outline",
-  DENIED: "destructive",
-  REQUIRES_HUMAN_APPROVAL: "secondary",
-}
 
 export function InvestigatedSummary({ reads }: { reads: { tool: string; output: unknown }[] }) {
   const [showRaw, setShowRaw] = useState(false)
@@ -40,8 +29,8 @@ export function InvestigatedSummary({ reads }: { reads: { tool: string; output: 
         onClick={() => setShowRaw((v) => !v)}
         className="cursor-pointer text-muted-foreground underline-offset-2 hover:underline"
       >
-        Investigated {reads.length} source{reads.length === 1 ? "" : "s"} (order, previous attempts, customer history)
-        {showRaw ? " — hide raw data" : " — show raw data"}
+        Checked {reads.length} source{reads.length === 1 ? "" : "s"}: the order, past attempts, and customer history
+        {showRaw ? " · hide the raw data" : " · show the raw data"}
       </button>
       {showRaw && (
         <pre className="mt-2 max-h-64 overflow-auto rounded-lg border bg-muted/40 p-2 text-xs">
@@ -78,8 +67,12 @@ export function PolicyCard({ policy }: { policy: PolicyOutput }) {
       <div className="mb-1 flex flex-wrap items-center gap-2">
         <span className="font-medium">Policy check</span>
         <Badge variant={DECISION_VARIANT[policy.decision] ?? "outline"}>{policy.decision.replace(/_/g, " ")}</Badge>
-        {policy.decision !== "ALLOWED" && (
-          <span className="text-xs text-muted-foreground">— overrode the agent&apos;s proposal</span>
+        {/* Policy rules independently, and sometimes agrees with the agent — so don't claim an override. */}
+        {policy.decision === "DENIED" && (
+          <span className="text-sm text-muted-foreground">blocked, whatever the AI wanted</span>
+        )}
+        {policy.decision === "REQUIRES_HUMAN_APPROVAL" && (
+          <span className="text-sm text-muted-foreground">handed to a person, whatever the AI wanted</span>
         )}
       </div>
       <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-muted-foreground">

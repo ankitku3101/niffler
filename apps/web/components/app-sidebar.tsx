@@ -12,11 +12,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { RadarIcon } from "lucide-react"
+import { NifflerMark } from "@/components/niffler-mark"
 
 const navMain = [
   {
-    title: "Welcome",
+    title: "Getting Started",
     url: "/dashboard/welcome",
   },
   {
@@ -39,6 +39,14 @@ const navMain = [
     title: "Policy Guardrails",
     url: "/dashboard/policies",
   },
+  {
+    title: "Agent vs. Rules",
+    url: "/dashboard/baseline",
+  },
+  {
+    title: "The Dataset",
+    url: "/dashboard/dataset",
+  },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -51,7 +59,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<Link href="/" />}
             >
-              <RadarIcon className="size-5!" />
+              <NifflerMark size={24} className="size-6!" />
               <span className="font-heading text-base font-semibold tracking-[0.02em]">
                 NIFFLER
               </span>

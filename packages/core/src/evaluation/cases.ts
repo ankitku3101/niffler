@@ -14,11 +14,19 @@ export interface CaseSummary {
   recommendedAction: string | null;
   confidence: number | null;
   policyOverridden: boolean;
+  // Order facts for describing a case with no diagnosis yet; only populated while it is DETECTED.
+  failedAttempts: number;
+  hasAuthorizedPayment: boolean;
+  alreadyPaid: boolean;
 }
 
 export async function listCases(dataSource: PaymentDataSource, fallback?: PaymentDataSource): Promise<CaseSummary[]> {
   const orders = await dataSource.listOrders(toIso(DETECTION_CUTOFF));
   const amountByOrderId = new Map(orders.map((o) => [o.id, o.amount_paise]));
+
+  // Live status, not the snapshot — an order paid since detection is what makes it a policy block.
+  const liveOrders = await dataSource.listOrders();
+  const paidOrderIds = new Set(liveOrders.filter((o) => o.status === "paid").map((o) => o.id));
 
   const cases = await db.select().from(recoveryCases);
   const diagnosisRows = await db.select().from(auditLog).where(eq(auditLog.toolName, "submitDiagnosis"));
@@ -32,10 +40,16 @@ export async function listCases(dataSource: PaymentDataSource, fallback?: Paymen
   return Promise.all(
     cases.map(async (c) => {
       const diagnosis = diagnosisByCaseId.get(c.id);
+      const isSynthetic = amountByOrderId.has(c.orderId);
       let amountPaise = amountByOrderId.get(c.orderId);
       if (amountPaise === undefined && fallback) {
         amountPaise = (await fallback.getOrder(c.orderId))?.amount_paise;
       }
+
+      // Primary source only: against a live provider this would be a network call per row.
+      const needsSignals = isSynthetic && c.status === "DETECTED";
+      const payments = needsSignals ? await dataSource.listPaymentsForOrder(c.orderId) : [];
+
       return {
         id: c.id,
         orderId: c.orderId,
@@ -45,6 +59,9 @@ export async function listCases(dataSource: PaymentDataSource, fallback?: Paymen
         recommendedAction: diagnosis?.recommendedAction ?? null,
         confidence: diagnosis?.confidence ?? null,
         policyOverridden: overriddenCaseIds.has(c.id),
+        failedAttempts: payments.filter((p) => p.status === "failed").length,
+        hasAuthorizedPayment: payments.some((p) => p.status === "authorized"),
+        alreadyPaid: needsSignals && paidOrderIds.has(c.orderId),
       };
     })
   );

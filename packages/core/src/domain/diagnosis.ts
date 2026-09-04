@@ -10,3 +10,4 @@ export const DiagnosisSchema = z.object({
 });
 
 export type Diagnosis = z.infer<typeof DiagnosisSchema>;
+export type RecommendedAction = z.infer<typeof RecommendedActionSchema>;

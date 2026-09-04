@@ -1,31 +1,43 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DECISION_VARIANT } from "@/components/timeline-cards"
+import { DECISION_VARIANT } from "@/lib/labels"
+import {
+  FaCircleCheck,
+  FaBan,
+  FaUserClock,
+  FaClipboardCheck,
+  FaArrowsRotate,
+  FaLink,
+  FaGaugeHigh,
+} from "react-icons/fa6"
 
 const DECISIONS = [
-  { decision: "ALLOWED", detail: "The recommended action goes ahead." },
-  { decision: "DENIED", detail: "The action is blocked outright — the case is stopped, nothing more for a human to do." },
-  { decision: "REQUIRES_HUMAN_APPROVAL", detail: "The action is blocked and routed to a human instead." },
+  { decision: "ALLOWED", icon: FaCircleCheck, detail: "Go ahead. The agent does what it planned." },
+  { decision: "DENIED", icon: FaBan, detail: "Blocked. The case stops here, and there is nothing for a person to do about it." },
+  { decision: "REQUIRES_HUMAN_APPROVAL", icon: FaUserClock, detail: "Blocked, but a person should take a look at it." },
 ]
 
 const RULES = [
   {
     name: "Eligibility",
+    icon: FaClipboardCheck,
     question: "Is this order still unpaid?",
-    detail: "Denies recovery outright if the order has already been paid — including via a channel outside NIFFLER's own actions.",
+    detail: "If the money already came in, there is nothing to recover. This holds even if the customer paid some other way that NIFFLER had nothing to do with.",
     outcomes: [{ condition: "Order already paid", decision: "DENIED" }],
   },
   {
     name: "Attempt limit",
-    question: "Has the customer already failed to pay too many times?",
-    detail: "Retrying a card the bank has already declined risks hurting the merchant's own decline-ratio reputation with card networks. This is the rule that demonstrates the agent's own proposal getting blocked.",
+    icon: FaArrowsRotate,
+    question: "Has this already failed too many times?",
+    detail: "Banks keep score of how often a shop's payments get declined. Keep retrying a card that has already been refused and the bank starts trusting that shop less, which makes future payments fail more often.",
     outcomes: [{ condition: "3 or more failed attempts", decision: "REQUIRES_HUMAN_APPROVAL" }],
   },
   {
     name: "Prior recovery link",
-    question: "Has NIFFLER already sent a payment link for this case?",
-    detail: "Sending a second link risks double-charging the customer if they pay both.",
+    icon: FaLink,
+    question: "Has a payment link already gone out?",
+    detail: "If the customer pays both links, they get charged twice.",
     outcomes: [
       { condition: "Link already paid", decision: "DENIED" },
       { condition: "Link outstanding, unpaid", decision: "REQUIRES_HUMAN_APPROVAL" },
@@ -33,9 +45,10 @@ const RULES = [
   },
   {
     name: "Iteration limit",
-    question: "Is the agent stuck investigating?",
-    detail: "A hard circuit breaker against infinite agent loops.",
-    outcomes: [{ condition: "10 or more tool calls in one investigation", decision: "REQUIRES_HUMAN_APPROVAL" }],
+    icon: FaGaugeHigh,
+    question: "Is the agent going round in circles?",
+    detail: "An AI can get stuck repeating itself forever. This cuts it off and hands the case to a person.",
+    outcomes: [{ condition: "10 or more steps on one case", decision: "REQUIRES_HUMAN_APPROVAL" }],
   },
 ]
 
@@ -45,19 +58,22 @@ export default function PoliciesPage() {
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Policy Guardrails</h1>
         <p className="mt-1.5 text-base text-muted-foreground">
-          The deterministic boundary between AI reasoning and business-critical decisions.
+          The line between what the AI wants to do and what it is allowed to do.
         </p>
       </div>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-xl font-semibold">Why this exists</h2>
         <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
-          NIFFLER&apos;s AI never moves money directly.{" "}
+          The AI is good at reading a situation and suggesting what to do. It is not something you want
+          quietly moving money on its own.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
           <span className="font-medium text-primary">
-            Every action the agent recommends is checked against a small set of deterministic,
-            non-negotiable rules
+            So it does not get to decide.
           </span>{" "}
-          before anything actually happens.
+          Whatever it suggests is checked against four plain rules first. These rules are ordinary code,
+          not AI. They give the same answer every time, and the AI cannot talk them round.
         </p>
       </section>
 
@@ -67,6 +83,7 @@ export default function PoliciesPage() {
           {DECISIONS.map((d) => (
             <div key={d.decision} className="rounded-lg border p-4">
               <Badge variant={DECISION_VARIANT[d.decision] ?? "outline"} className="mb-2">
+                <d.icon />
                 {d.decision.replace(/_/g, " ")}
               </Badge>
               <div className="text-base text-muted-foreground">{d.detail}</div>
@@ -81,7 +98,10 @@ export default function PoliciesPage() {
           {RULES.map((rule) => (
             <Card key={rule.name} className="gap-3 py-5">
               <CardHeader>
-                <CardTitle className="text-lg">{rule.name}</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <rule.icon className="size-4 shrink-0 text-primary" />
+                  {rule.name}
+                </CardTitle>
                 <CardDescription className="text-base">{rule.question}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col gap-3">
@@ -103,19 +123,18 @@ export default function PoliciesPage() {
       </section>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold">How a verdict is reached</h2>
+        <h2 className="text-xl font-semibold">How the answer is decided</h2>
         <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
-          All four rules are checked for every case, and the strictest verdict wins — DENIED beats
-          REQUIRES HUMAN APPROVAL beats ALLOWED. Only an ALLOWED verdict lets the agent&apos;s own
-          recommended action — capture the payment, send a recovery link, escalate, or stop by its
-          own judgment — actually execute.
+          All four rules run on every case, and the strictest one wins. If any rule says block, the case is
+          blocked, no matter what the other three say. The agent only gets to do what it planned if every
+          rule agrees.
         </p>
         <p className="text-base text-muted-foreground">
-          See it happen on real cases in the{" "}
+          You can see this happen on real cases in the{" "}
           <Link href="/dashboard/cases" className="text-primary underline">
             Decision Explorer
           </Link>
-          , filtered to cases where a guardrail overrode the agent.
+          . Filter it to the cases where the rules overruled the AI.
         </p>
       </section>
     </div>

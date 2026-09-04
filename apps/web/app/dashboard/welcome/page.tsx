@@ -1,50 +1,67 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FaGithub } from "react-icons/fa"
+import {
+  FaChartLine,
+  FaBolt,
+  FaMagnifyingGlassChart,
+  FaFlaskVial,
+  FaShieldHalved,
+  FaArrowRight,
+  FaScaleBalanced,
+  FaDatabase,
+} from "react-icons/fa6"
 
 const STEPS = [
-  { name: "Detect", detail: "Deterministic code scans failed orders for revenue at risk. No AI yet." },
-  { name: "Investigate", detail: "The agent reads the order, prior attempts, and the customer's history." },
-  { name: "Diagnose", detail: "The agent explains why the payment failed, with evidence and a confidence score." },
-  { name: "Decide", detail: "The agent recommends one action: capture, send a link, escalate, or stop." },
-  { name: "Policy check", detail: "Deterministic rules check the recommendation before anything happens." },
-  { name: "Act", detail: "Only a policy-approved action is executed against Razorpay." },
-  { name: "Observe", detail: "The outcome is recorded and measured — recovered, pending, escalated, or stopped." },
+  { name: "Detect", detail: "Plain code finds the failed orders. No AI involved yet." },
+  { name: "Investigate", detail: "The agent reads the order, the past attempts, and the customer's history." },
+  { name: "Diagnose", detail: "It explains why the payment failed, and how sure it is." },
+  { name: "Decide", detail: "It picks one action: capture, send a link, ask a human, or stop." },
+  { name: "Policy check", detail: "A fixed set of rules checks that choice before anything happens." },
+  { name: "Act", detail: "Only an approved action is sent to Razorpay." },
+  { name: "Observe", detail: "The result is saved: recovered, waiting, escalated, or stopped." },
 ]
 
 const NAV_CARDS = [
-  { title: "Command Center", url: "/dashboard", detail: "Aggregate outcome of the last full batch run — revenue at risk, recovered, and the recovery rate." },
-  { title: "Agent Run", url: "/dashboard/live", detail: "Pick one undetected synthetic case and watch NIFFLER investigate, diagnose, and act on it live." },
-  { title: "Decision Explorer", url: "/dashboard/cases", detail: "Inspect the full decision trail of every case that's already been processed." },
-  { title: "Try It Yourself", url: "/dashboard/simulate", detail: "Create one real Razorpay Test Mode order, fail it on purpose, and watch NIFFLER handle a case it's never seen before." },
-  { title: "Policy Guardrails", url: "/dashboard/policies", detail: "The deterministic rules that stand between the agent's recommendation and any real action." },
+  { title: "Command Center", url: "/dashboard", icon: FaChartLine, detail: "The totals so far. How much was at risk, how much came back, and how well it worked." },
+  { title: "Agent Run", url: "/dashboard/live", icon: FaBolt, detail: "Pick a case and watch the agent work through it, step by step, right now." },
+  { title: "Decision Explorer", url: "/dashboard/cases", icon: FaMagnifyingGlassChart, detail: "Every case it has already handled, and the full reasoning behind each one." },
+  { title: "Try It Yourself", url: "/dashboard/simulate", icon: FaFlaskVial, detail: "Make a real test payment, fail it on purpose, and watch the agent handle a case it has never seen." },
+  { title: "Policy Guardrails", url: "/dashboard/policies", icon: FaShieldHalved, detail: "The rules that sit between what the agent wants to do and what actually happens." },
+  { title: "Agent vs. Rules", url: "/dashboard/baseline", icon: FaScaleBalanced, detail: "Could simple rules have done the same job? I checked every case to find out." },
+  { title: "The Dataset", url: "/dashboard/dataset", icon: FaDatabase, detail: "All the data the agent reads. None of it is private, so all of it is shown." },
 ]
 
 export default function WelcomePage() {
   return (
     <div className="flex flex-col gap-10 px-4 py-6 lg:px-6 md:py-10">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">Welcome to NIFFLER</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Welcome</h1>
         <p className="mt-1.5 text-base text-muted-foreground">
-          A quick orientation before you dive in — what this does, and where to go.
+          Niffler is an AI revenue recovery agent, built to find and act on lost revenue opportunities.
         </p>
       </div>
 
       <section className="flex flex-col gap-2">
-        <h2 className="text-xl font-semibold">What this is</h2>
+        <h2 className="text-xl font-semibold">What NIFFLER does</h2>
         <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
-          NIFFLER is an autonomous AI agent that investigates failed payments, diagnoses why each one
-          was lost, and recommends a recovery action.{" "}
-          <span className="font-medium text-primary">
-            Every action passes through a deterministic policy engine before it touches money
-          </span>{" "}
-          — the model recommends, but it never decides alone. It&apos;s an independent project
-          inspired by Razorpay&apos;s AI Revenue Recovery Buildathon track, built on Razorpay Test
-          Mode — no real money moves anywhere in this app.
+          When a customer tries to pay and the payment fails, that money is not always gone. Sometimes a
+          second chance is all it takes. NIFFLER is an AI agent that looks at each failed payment, works
+          out why it failed, and decides what to do about it.
         </p>
         <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
-          Every failed order worth investigating becomes one <span className="font-medium text-foreground">recovery case</span> —
-          &quot;order&quot; and &quot;case&quot; mean the same underlying payment, just before and after NIFFLER picks it up.
+          <span className="font-medium text-primary">
+            The AI never moves money on its own.
+          </span>{" "}
+          Whatever it decides is checked against a fixed set of rules first. If the rules say no, nothing
+          happens.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          One failed order becomes one <span className="font-medium text-foreground">recovery case</span>.
+          Both words mean the same payment. It is an order before NIFFLER picks it up, and a case after.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          Niffler is a personal project and runs entirely on Razorpay Test Mode. All payments and transactions are simulated, so no real money moves anywhere here.
         </p>
       </section>
 
@@ -52,7 +69,10 @@ export default function WelcomePage() {
         <h2 className="text-xl font-semibold">The loop</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, i) => (
-            <div key={step.name} className="rounded-lg border p-4">
+            <div
+              key={step.name}
+              className="rounded-lg border p-4 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10"
+            >
               <div className="flex items-center gap-2.5">
                 <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                   {i + 1}
@@ -70,16 +90,15 @@ export default function WelcomePage() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card className="gap-2 py-5">
             <CardHeader>
-              <CardTitle className="text-lg">The synthetic dataset</CardTitle>
+              <CardTitle className="text-lg">The made-up dataset</CardTitle>
               <CardDescription className="text-base">
-                ~500 orders, generated once and seeded into the database.
+                500 orders, generated once and saved.
               </CardDescription>
             </CardHeader>
             <CardContent className="text-base text-muted-foreground">
-              You can&apos;t add to it, but you can watch NIFFLER work on it three ways: Command
-              Center shows the aggregate result of a full batch run, Agent Run lets you watch one
-              still-undetected case live, and Decision Explorer lets you inspect the full trail of
-              every case already processed.
+              You can&apos;t add to this one, but you can see it three ways. Command Center has the
+              totals. Agent Run lets you watch a fresh case being handled. Decision Explorer shows the
+              reasoning behind every case already done.
             </CardContent>
           </Card>
           <Card className="gap-2 py-5">
@@ -90,22 +109,51 @@ export default function WelcomePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="text-base text-muted-foreground">
-              Fail it on purpose, and NIFFLER detects, investigates, and acts on a case it has
-              genuinely never seen before — live, ending in a real, payable Razorpay Payment Link if
-              that&apos;s what it decides.
+              Fail it on purpose and watch NIFFLER handle a case it has never seen. If it decides to send
+              a payment link, that link is real and you can actually pay it.
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-xl font-semibold">How NIFFLER finds out what happened</h2>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          Some actions give an answer straight away. If NIFFLER captures a payment, it asks Razorpay and
+          knows at once whether it worked.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          A payment link is different. The customer might pay it in five minutes or in three days, long
+          after the agent has finished. So for this last step, NIFFLER does not ask Razorpay. Razorpay
+          calls NIFFLER instead. That message is called a webhook.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          A message like that cannot be trusted on sight, so three things are checked first. Is it really
+          from Razorpay, proven by its signature? Has this payment already been counted? Does the case
+          allow this change? Only if all three pass does the case move from{" "}
+          <span className="font-medium text-foreground">link sent</span> to{" "}
+          <span className="font-medium text-foreground">recovered</span>.
+        </p>
+        <p className="max-w-[70ch] text-base leading-relaxed text-muted-foreground">
+          The duplicate check earns its place. Razorpay sends the same message again if it does not hear
+          back, which I found out by accident while setting this up.
+        </p>
       </section>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-xl font-semibold">Where to go next</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {NAV_CARDS.map((card) => (
-            <Link key={card.url} href={card.url} className="block">
-              <Card className="h-full gap-1.5 py-5 transition-colors hover:bg-muted/40">
+            <Link key={card.url} href={card.url} className="group block">
+              <Card className="h-full gap-1.5 border-primary/15 py-5 transition-all duration-300 hover:border-primary/40 hover:bg-muted/40 hover:shadow-lg hover:shadow-primary/10">
                 <CardHeader>
-                  <CardTitle className="text-lg">{card.title}</CardTitle>
+                  <CardTitle className="flex items-center justify-between gap-2 text-lg">
+                    <span className="flex items-center gap-2">
+                      <card.icon className="size-4 shrink-0 text-primary" />
+                      {card.title}
+                    </span>
+                    <FaArrowRight className="size-3.5 shrink-0 text-primary/50 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="text-base text-muted-foreground">{card.detail}</CardContent>
               </Card>

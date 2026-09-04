@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { NifflerMark } from "@/components/niffler-mark";
 import { LinkPendingBridge } from "@/components/link-pending-bridge";
 import { cn } from "@/lib/utils";
 
@@ -28,10 +29,11 @@ export function LandingHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <span
           className={cn(
-            "font-heading text-sm font-semibold tracking-[0.02em] transition-colors duration-300 ease-out",
+            "flex items-center gap-2 font-heading text-sm font-semibold tracking-[0.02em] transition-colors duration-300 ease-out",
             scrolled ? "text-foreground" : "text-white",
           )}
         >
+          <NifflerMark size={28} className="size-7" />
           NIFFLER
         </span>
         <div className="flex items-center gap-3">

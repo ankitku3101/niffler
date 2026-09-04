@@ -65,8 +65,12 @@ export async function generateReport(dataSource: PaymentDataSource) {
     const naturalRecoveryRate = controlNaturallyRecoveredPaise / controlAtRiskPaise;
     const attributableLiftRate = recoveryRate - naturalRecoveryRate;
 
+    // Treatment-only, like every metric here: Agent Run re-runs control cases, and those write policy rows.
+    const treatmentCaseIds = new Set(treatmentCases.map((c) => c.id));
     const policyRows = await db.select().from(auditLog).where(eq(auditLog.toolName, "policyCheck"));
-    const policyOverrideCount = policyRows.filter((r) => (r.output as { decision: string }).decision !== "ALLOWED").length;
+    const policyOverrideCount = policyRows.filter(
+        (r) => treatmentCaseIds.has(r.caseId) && (r.output as { decision: string }).decision !== "ALLOWED"
+    ).length;
 
 
     const result = { 

@@ -19,7 +19,7 @@ type Phase = "idle" | "creating" | "checkout" | "polling" | "paid" | "recovering
 
 const MAX_POLL_ATTEMPTS = 15
 
-const STEPS = ["Create order", "Pay with test card", "Fail on purpose", "Watch it recover"]
+const STEPS = ["Create an order", "Pay with the test card", "Make it fail", "Watch the agent"]
 
 const STEP_FOR_PHASE: Record<Phase, number> = {
   idle: 0,
@@ -145,9 +145,9 @@ export function SimulatePanel() {
       </ol>
 
       <div className="max-w-xl rounded-lg border p-6">
-        <h2 className="text-lg font-semibold">Create a real failed payment</h2>
+        <h2 className="text-lg font-semibold">Make a payment fail on purpose</h2>
         <p className="mt-1.5 text-base text-muted-foreground">
-          One real order in Razorpay Test Mode — no real money moves.
+          This creates one real order in Razorpay&apos;s test mode. No real money is involved.
         </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md bg-muted/60 px-3.5 py-2.5 text-sm">
@@ -157,9 +157,9 @@ export function SimulatePanel() {
         </div>
 
         <p className="mt-4 text-base text-muted-foreground">
-          Then, to see NIFFLER recover it, enter an OTP with{" "}
-          <span className="font-semibold text-primary">fewer than 4 digits</span> — that fails the
-          payment on purpose. Close the popup once you see the failure.
+          When it asks for an OTP, type{" "}
+          <span className="font-semibold text-primary">fewer than 4 digits</span>. That makes the payment
+          fail, which is the whole point here. Close the popup once you see it fail.
         </p>
 
         <div className="mt-6">
@@ -176,8 +176,8 @@ export function SimulatePanel() {
           {phase === "paid" && (
             <div className="flex flex-col gap-3">
               <p className="text-base text-foreground">
-                That payment succeeded — nothing for NIFFLER to recover! Try again and use a short OTP
-                to fail it on purpose.
+                That payment went through, so there is nothing to recover. Try again and type a short OTP
+                to make it fail.
               </p>
               <Button onClick={reset} variant="outline" size="lg" className="w-fit px-6">
                 Try again
@@ -186,7 +186,9 @@ export function SimulatePanel() {
           )}
           {phase === "timeout" && (
             <div className="flex flex-col gap-3">
-              <p className="text-base text-foreground">Didn&apos;t detect a completed attempt. Try again.</p>
+              <p className="text-base text-foreground">
+                That payment never finished. Try again.
+              </p>
               <Button onClick={reset} variant="outline" size="lg" className="w-fit px-6">
                 Try again
               </Button>
@@ -206,13 +208,12 @@ export function SimulatePanel() {
       {phase === "recovering" && caseId !== null && (
         <div className="max-w-xl">
           <p className="mb-3 text-base text-muted-foreground">
-            Order {orderId} failed — NIFFLER just detected it. Watching it live:
+            Order {orderId} failed, and NIFFLER has picked it up. Here it is, working:
           </p>
           <LiveCaseRun caseId={caseId} source="razorpay" onFinished={() => setRunFinished(true)} />
           {runFinished && (
             <p className="mt-3 text-sm text-muted-foreground">
-              This case now lives in Decision Explorer too, alongside every other case NIFFLER has
-              processed.
+              Your case is now saved in Decision Explorer, next to all the others.
             </p>
           )}
         </div>
