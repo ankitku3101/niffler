@@ -38,6 +38,12 @@ const razorpay = new Razorpay({
 const app = express();
 app.use(cors({ origin: process.env.WEB_ORIGIN ?? "*" }));
 
+// Render's health check — deliberately doesn't touch the DB, so a Postgres
+// outage doesn't also make Render think the whole process is dead.
+app.get("/health", (_req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 app.get("/report", async (_req, res) => {
   const report = await generateReport(new JsonPaymentDataSource());
   res.json(report);
