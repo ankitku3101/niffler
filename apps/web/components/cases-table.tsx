@@ -18,7 +18,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
-import { formatPaise } from "@/lib/format"
+import { formatPaise, formatWhen } from "@/lib/format"
 import { getCaseDetail, type CaseDetail, type CaseSummary } from "@/lib/cases"
 import { CaseTimeline } from "@/components/case-timeline"
 import { RECOMMENDED_ACTION_LABELS } from "@/lib/labels"
@@ -147,7 +147,8 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
             <TableHead className="hidden truncate sm:table-cell sm:w-18">Amount</TableHead>
             {/* auto on mobile: absorbs the leftover width instead of forcing the table off-screen. */}
             <TableHead className="w-auto sm:w-80">Diagnosis</TableHead>
-            <TableHead className="hidden w-40 sm:table-cell">Recommended Action</TableHead>
+            <TableHead className="hidden w-36 sm:table-cell">Recommended Action</TableHead>
+            <TableHead className="hidden w-26 sm:table-cell">When</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -176,6 +177,9 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
               <TableCell className="hidden align-top text-sm whitespace-normal text-muted-foreground sm:table-cell">
                 {c.recommendedAction ? RECOMMENDED_ACTION_LABELS[c.recommendedAction] ?? c.recommendedAction : "—"}
               </TableCell>
+              <TableCell className="hidden align-top text-sm whitespace-nowrap text-muted-foreground tabular-nums sm:table-cell">
+                {formatWhen(c.updatedAt)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -196,7 +200,7 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
                 Couldn&apos;t load this case&apos;s details right now. Try again in a moment.
               </p>
             )}
-            {selected && <CaseTimeline auditTrail={selected.auditTrail} />}
+            {selected && <CaseTimeline auditTrail={selected.auditTrail} caseStatus={selected.status} />}
           </div>
         </SheetContent>
       </Sheet>

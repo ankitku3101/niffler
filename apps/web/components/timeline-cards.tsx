@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { ExternalLinkIcon } from "lucide-react"
 import { DECISION_VARIANT, RECOMMENDED_ACTION_LABELS } from "@/lib/labels"
 import { Badge } from "@/components/ui/badge"
 import { formatPaise, formatPercent } from "@/lib/format"
@@ -84,14 +85,48 @@ export function PolicyCard({ policy }: { policy: PolicyOutput }) {
   )
 }
 
-export function ActionCard({ toolName, action }: { toolName: string; action: ActionOutput }) {
+export function ActionCard({
+  toolName,
+  action,
+  // Only invite payment while the money is genuinely still outstanding. A spent link, or one from an
+  // earlier attempt, must not be offered again. Defaults to the state this action itself produced,
+  // which is what a live run wants.
+  payable = action.status === "ACTION_EXECUTED",
+}: {
+  toolName: string
+  action: ActionOutput
+  payable?: boolean
+}) {
+  const awaitingPayment = payable
+
   return (
     <div className="rounded-lg border p-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium">{ACTION_LABELS[toolName] ?? toolName}</span>
         {action.amount_paise !== undefined && <Badge variant="outline">{formatPaise(action.amount_paise)}</Badge>}
       </div>
-      {action.link && <p className="mt-1 text-xs break-all text-muted-foreground">Link: {action.link}</p>}
+
+      {action.link && awaitingPayment && (
+        <div className="mt-3 flex flex-col gap-1.5">
+          <a
+            href={action.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-lg bg-primary px-3.5 py-2 text-sm font-medium text-primary-foreground transition-transform duration-200 hover:-translate-y-0.5"
+          >
+            Pay this link
+            <ExternalLinkIcon className="size-3.5 shrink-0" />
+          </a>
+          <span className="text-sm text-muted-foreground">
+            A real Razorpay test link. Paying it tells NIFFLER the money came in, and the case turns into
+            a recovery.
+          </span>
+        </div>
+      )}
+
+      {action.link && !awaitingPayment && (
+        <p className="mt-1 text-sm break-all text-muted-foreground">Link: {action.link}</p>
+      )}
     </div>
   )
 }

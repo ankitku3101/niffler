@@ -15,6 +15,7 @@ import { agentRuns, recoveryCases } from "@niffler/core/db/schema";
 import { resetRecovery } from "@niffler/core/cases/resetRecovery";
 import { compareToBaseline } from "@niffler/core/evaluation/baseline";
 import { summariseDataset } from "@niffler/core/evaluation/dataset";
+import { summariseLiveCases } from "@niffler/core/evaluation/liveCases";
 import { generateReport } from "@niffler/core/evaluation/report";
 import { runBatch } from "@niffler/core/evaluation/runBatch";
 import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
@@ -49,6 +50,10 @@ app.get("/health", (_req, res) => {
 app.get("/report", async (_req, res) => {
   const report = await generateReport(new JsonPaymentDataSource());
   res.json(report);
+});
+
+app.get("/live-cases", async (_req, res) => {
+  res.json(await summariseLiveCases(new JsonPaymentDataSource(), new RazorpayDataSource()));
 });
 
 app.get("/dataset", async (_req, res) => {

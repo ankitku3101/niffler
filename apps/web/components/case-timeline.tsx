@@ -28,7 +28,7 @@ function groupIntoCycles(trail: AuditRow[]): AuditRow[][] {
   return cycles
 }
 
-export function CaseTimeline({ auditTrail }: { auditTrail: AuditRow[] }) {
+export function CaseTimeline({ auditTrail, caseStatus }: { auditTrail: AuditRow[]; caseStatus?: string }) {
   if (auditTrail.length === 0) {
     return <p className="text-sm text-muted-foreground">Not yet investigated.</p>
   }
@@ -38,13 +38,29 @@ export function CaseTimeline({ auditTrail }: { auditTrail: AuditRow[] }) {
   return (
     <div className="flex flex-col gap-5">
       {cycles.map((cycle, i) => (
-        <Cycle key={cycle[0]!.id} cycle={cycle} attempt={i + 1} isLast={i === cycles.length - 1} />
+        <Cycle
+          key={cycle[0]!.id}
+          cycle={cycle}
+          attempt={i + 1}
+          isLast={i === cycles.length - 1}
+          caseStatus={caseStatus}
+        />
       ))}
     </div>
   )
 }
 
-function Cycle({ cycle, attempt, isLast }: { cycle: AuditRow[]; attempt: number; isLast: boolean }) {
+function Cycle({
+  cycle,
+  attempt,
+  isLast,
+  caseStatus,
+}: {
+  cycle: AuditRow[]
+  attempt: number
+  isLast: boolean
+  caseStatus?: string
+}) {
   const reads = cycle.filter((r) => READ_TOOLS.has(r.toolName)).map((r) => ({ tool: r.toolName, output: r.output }))
   const diagnosisRow = cycle.find((r) => r.toolName === "submitDiagnosis")
   const policyRow = cycle.find((r) => r.toolName === "policyCheck")
@@ -59,7 +75,13 @@ function Cycle({ cycle, attempt, isLast }: { cycle: AuditRow[]; attempt: number;
         <InvestigatedSummary reads={reads} />
         {diagnosisRow && <DiagnosisCard diagnosis={diagnosisRow.output as DiagnosisOutput} />}
         {policyRow && <PolicyCard policy={policyRow.output as PolicyOutput} />}
-        {actionRow && <ActionCard toolName={actionRow.toolName} action={actionRow.output as ActionOutput} />}
+        {actionRow && (
+          <ActionCard
+            toolName={actionRow.toolName}
+            action={actionRow.output as ActionOutput}
+            payable={isLast && caseStatus === "ACTION_EXECUTED"}
+          />
+        )}
       </div>
     </div>
   )

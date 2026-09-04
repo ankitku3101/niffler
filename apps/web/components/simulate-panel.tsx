@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Script from "next/script"
 import { CheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { apiClient } from "@/lib/apiClient"
 import { LiveCaseRun } from "@/components/live-case-run"
+import { CaseTimeline } from "@/components/case-timeline"
+import { getCaseDetail, type CaseDetail } from "@/lib/cases"
 import { cn } from "@/lib/utils"
 
 declare global {
@@ -18,6 +20,10 @@ type SimulatedOrder = { orderId: string; keyId: string; amountPaise: number }
 type Phase = "idle" | "creating" | "checkout" | "polling" | "paid" | "recovering" | "timeout" | "error"
 
 const MAX_POLL_ATTEMPTS = 15
+
+// Survives leaving the tab. The run itself is already saved in the database, so what comes back is the
+// stored trail rather than a fresh run — re-mounting LiveCaseRun would start the agent over.
+const STORAGE_KEY = "niffler:last-simulated-case"
 
 const STEPS = ["Create an order", "Pay with the test card", "Make it fail", "Watch the agent"]
 
@@ -38,6 +44,15 @@ export function SimulatePanel() {
   const [caseId, setCaseId] = useState<number | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [runFinished, setRunFinished] = useState(false)
+  const [restored, setRestored] = useState<CaseDetail | null>(null)
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEY)
+    if (!saved) return
+    getCaseDetail(Number(saved))
+      .then(setRestored)
+      .catch(() => sessionStorage.removeItem(STORAGE_KEY))
+  }, [])
 
   async function startOrder() {
     if (typeof window.Razorpay === "undefined") {
@@ -86,6 +101,8 @@ export function SimulatePanel() {
         const { data: caseData } = await apiClient.post<{ caseId: number }>(`/simulate/order/${id}/case`)
         setCaseId(caseData.caseId)
         setRunFinished(false)
+        setRestored(null)
+        sessionStorage.setItem(STORAGE_KEY, String(caseData.caseId))
         setPhase("recovering")
         return
       }
@@ -106,6 +123,8 @@ export function SimulatePanel() {
     setOrderId(null)
     setCaseId(null)
     setErrorMessage(null)
+    setRestored(null)
+    sessionStorage.removeItem(STORAGE_KEY)
   }
 
   const activeStep = STEP_FOR_PHASE[phase]
@@ -168,11 +187,11 @@ export function SimulatePanel() {
               Create a test order
             </Button>
           )}
-          {phase === "creating" && <p className="text-base text-muted-foreground">Creating order…</p>}
+          {phase === "creating" && <Working>Creating order…</Working>}
           {phase === "checkout" && (
             <p className="text-base text-muted-foreground">Complete the checkout in the popup…</p>
           )}
-          {phase === "polling" && <p className="text-base text-muted-foreground">Checking what happened…</p>}
+          {phase === "polling" && <Working>Checking what happened…</Working>}
           {phase === "paid" && (
             <div className="flex flex-col gap-3">
               <p className="text-base text-foreground">
@@ -218,6 +237,31 @@ export function SimulatePanel() {
           )}
         </div>
       )}
+
+      {phase === "idle" && restored && (
+        <div className="max-w-xl">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-base text-muted-foreground">
+              Your last run, on order {restored.orderId}. Saved, so it survives leaving this page.
+            </p>
+            <Button variant="outline" size="sm" onClick={reset}>
+              Clear
+            </Button>
+          </div>
+          <CaseTimeline auditTrail={restored.auditTrail} caseStatus={restored.status} />
+        </div>
+      )}
     </div>
+  )
+}
+
+// Marks work that is genuinely in flight. The dot pulses rather than the text, so the label stays
+// legible — and it matches the running indicator on a live case run.
+function Working({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 text-base text-muted-foreground">
+      <span className="size-2 shrink-0 animate-pulse rounded-full bg-primary motion-reduce:animate-none" />
+      {children}
+    </p>
   )
 }

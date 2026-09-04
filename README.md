@@ -34,7 +34,7 @@ That split is the whole design. The AI is good at reading a messy situation and 
 
 ## Screenshots
 
-**Command Center** — what happened across the whole batch.
+**Command Center** — the results, what to do next, and an honest answer on scale.
 
 ![Command Center](./docs/command-center.png)
 
@@ -117,7 +117,8 @@ Two seams make the whole thing swappable:
 - **Real Razorpay Test Mode integration** — orders, captures, Payment Links, and a signature-verified webhook.
 - **A control group.** 34 of the 200 failed orders are deliberately never touched, so recovery can be compared against doing nothing.
 - **A full audit trail.** Every read, decision and action is stored and replayable.
-- **Try it yourself.** Create a real test order, fail it on purpose, and watch the agent handle a case it has never seen.
+- **Try it yourself.** Create a real test order, fail it on purpose, and watch the agent handle a case it has never seen. If it sends a payment link, that link is real and payable — pay it and a webhook turns the case into a confirmed recovery.
+- **An answer on scale**, on the dashboard rather than buried here: what was measured, where the bottleneck actually is, and what is missing.
 
 ## Example investigation
 
@@ -187,7 +188,7 @@ No agent framework. The loop is my own code, and writing it is what made me unde
 apps/
   api/src/            Express API and the Razorpay webhook receiver
   web/
-    app/dashboard/    the seven dashboard pages
+    app/dashboard/    the eight dashboard pages
     components/       React components
     lib/              API client and shared helpers
 

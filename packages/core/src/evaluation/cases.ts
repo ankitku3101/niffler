@@ -14,6 +14,8 @@ export interface CaseSummary {
   recommendedAction: string | null;
   confidence: number | null;
   policyOverridden: boolean;
+  /** When the case was last acted on. Drives the newest-first ordering. */
+  updatedAt: string;
   // Order facts for describing a case with no diagnosis yet; only populated while it is DETECTED.
   failedAttempts: number;
   hasAuthorizedPayment: boolean;
@@ -37,7 +39,7 @@ export async function listCases(dataSource: PaymentDataSource, fallback?: Paymen
     policyRows.filter((row) => (row.output as { decision: string }).decision !== "ALLOWED").map((row) => row.caseId)
   );
 
-  return Promise.all(
+  const summaries = await Promise.all(
     cases.map(async (c) => {
       const diagnosis = diagnosisByCaseId.get(c.id);
       const isSynthetic = amountByOrderId.has(c.orderId);
@@ -59,12 +61,15 @@ export async function listCases(dataSource: PaymentDataSource, fallback?: Paymen
         recommendedAction: diagnosis?.recommendedAction ?? null,
         confidence: diagnosis?.confidence ?? null,
         policyOverridden: overriddenCaseIds.has(c.id),
+        updatedAt: c.updatedAt.toISOString(),
         failedAttempts: payments.filter((p) => p.status === "failed").length,
         hasAuthorizedPayment: payments.some((p) => p.status === "authorized"),
         alreadyPaid: needsSignals && paidOrderIds.has(c.orderId),
       };
     })
   );
+
+  return summaries.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export interface CaseDetail {
