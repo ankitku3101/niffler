@@ -11,6 +11,7 @@ Thumbs.db
 .playwright-mcp/
 .claude/
 /*.png
+!/niffler-hero.png
 
 CLAUDE.md
 GLOSSARY.md
