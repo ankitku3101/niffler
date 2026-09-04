@@ -22,7 +22,7 @@ export default function LandingPage() {
           </h1>
           {/* Theme token, not a fixed white — the shader behind this is a bright sky in light mode. */}
           <p className="mt-6 max-w-[46ch] animate-[hero-in_0.6s_cubic-bezier(0.16,1,0.3,1)_0.12s_both] text-lg leading-[1.5] text-foreground/75 motion-reduce:animate-none">
-            An AI agent that wins back failed payments, with a fixed set of
+            An AI Revenue Recovery agent that wins back failed payments, with a fixed set of
             rules standing between it and your money.
           </p>
         </div>
