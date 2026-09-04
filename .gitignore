@@ -10,6 +10,7 @@ dist/
 Thumbs.db
 .playwright-mcp/
 .claude/
+/*.png
 
 CLAUDE.md
 GLOSSARY.md
