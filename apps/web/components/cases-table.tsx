@@ -165,7 +165,10 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
                 </div>
               </TableCell>
               <TableCell className="truncate">{formatPaise(c.amountPaise)}</TableCell>
-              <TableCell className="line-clamp-2 py-2.5 text-sm leading-snug whitespace-normal">
+              <TableCell
+                className="line-clamp-3 py-2.5 text-sm leading-snug whitespace-normal"
+                title={c.diagnosis ?? undefined}
+              >
                 {c.diagnosis ?? "—"}
               </TableCell>
               <TableCell className="text-sm whitespace-normal">

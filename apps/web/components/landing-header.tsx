@@ -36,7 +36,7 @@ export function LandingHeader() {
         </span>
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard"
+            href="/dashboard/welcome"
             className={cn(
               "inline-flex h-9 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors duration-200 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]",
               scrolled

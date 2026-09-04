@@ -17,7 +17,7 @@ export function ModeToggle({ className }: { className?: string }) {
       aria-label="Toggle dark mode"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
       className={cn(
-        "inline-flex size-9 items-center justify-center rounded-sm border border-border text-foreground/90 transition-colors duration-200 ease-out hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]",
+        "inline-flex size-9 cursor-pointer items-center justify-center rounded-sm border border-border text-foreground/90 transition-colors duration-200 ease-out hover:bg-accent hover:text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ring)]",
         className,
       )}
     >
