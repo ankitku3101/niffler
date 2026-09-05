@@ -36,7 +36,8 @@
     "check:recover-live": "tsx scripts/check-recover-live.ts",
     "reset-live-case": "tsx scripts/reset-live-case.ts",
     "check:recovery-link": "tsx scripts/check-recovery-link.ts",
-    "replay-control-cases": "tsx scripts/replay-control-cases.ts"
+    "replay-control-cases": "tsx scripts/replay-control-cases.ts",
+    "check:webhook-concurrency": "tsx scripts/check-webhook-concurrency.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",
