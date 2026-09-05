@@ -97,7 +97,10 @@ export function ActionCard({
   action: ActionOutput
   payable?: boolean
 }) {
-  const awaitingPayment = payable
+  // Only a real Razorpay link is worth offering. Cases from the generated dataset get a
+  // placeholder id instead, which as an href would resolve against this site and 404.
+  const isRealLink = /^https?:\/\//.test(action.link ?? "")
+  const awaitingPayment = payable && isRealLink
 
   return (
     <div className="rounded-lg border p-3">
@@ -124,8 +127,15 @@ export function ActionCard({
         </div>
       )}
 
-      {action.link && !awaitingPayment && (
+      {action.link && isRealLink && !awaitingPayment && (
         <p className="mt-1 text-sm break-all text-muted-foreground">Link: {action.link}</p>
+      )}
+
+      {action.link && !isRealLink && (
+        <p className="mt-1 text-sm text-muted-foreground">
+          This case comes from the generated dataset, so the link is a stand-in rather than a real
+          one you can pay. Try It Yourself creates a case with a genuine link.
+        </p>
       )}
     </div>
   )

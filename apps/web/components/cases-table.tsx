@@ -186,7 +186,9 @@ export function CasesTable({ cases }: { cases: CaseSummary[] }) {
       </Table>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent className="sm:max-w-lg">
+        {/* Widths carry the same data-[side] prefix the base component uses, or its own
+            sm:max-w-sm wins on specificity and the sheet stays narrow. */}
+        <SheetContent className="data-[side=right]:sm:max-w-lg data-[side=right]:lg:max-w-2xl data-[side=right]:xl:max-w-3xl">
           <SheetHeader>
             <SheetTitle>{selected ? selected.orderId : error ? "Data unavailable" : "Loading…"}</SheetTitle>
             <SheetDescription>
