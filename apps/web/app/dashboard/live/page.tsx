@@ -24,7 +24,8 @@ export default async function LiveRunPage() {
       </p>
       <p className="mt-2 mb-5 max-w-[75ch] text-sm text-muted-foreground">
         These cases were all set aside on purpose and left out of the totals, so running them here can
-        never change the numbers on Command Center.
+        never change the numbers on Command Center. Each one rewinds when it finishes, so the next
+        person gets to watch it too.
       </p>
       <LiveRunPicker cases={detected} />
     </div>

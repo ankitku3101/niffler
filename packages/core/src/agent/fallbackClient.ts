@@ -1,5 +1,6 @@
 import { RateLimitError } from "groq-sdk";
 import { ApiError } from "@google/genai";
+import { AllProvidersExhaustedError } from "./llmClient.js";
 import type { AgentMessage, AgentTurn, LlmClient, ToolDefinition } from "./llmClient.js";
 
 // Helper function to determine if an error is a rate limit error
@@ -20,7 +21,16 @@ export class FallbackLlmClient implements LlmClient {
             return await this.primary.converse(messages, tools);
         } catch (err) {
             if (!isRateLimitError(err)) throw err;
-            return await this.secondary.converse(messages, tools);
+
+            try {
+                return await this.secondary.converse(messages, tools);
+            } catch (secondaryErr) {
+                // Only when the backup is rate-limited too. Any other failure is the
+                // secondary's own problem and should surface as itself, same reasoning as
+                // the primary check above.
+                if (isRateLimitError(secondaryErr)) throw new AllProvidersExhaustedError();
+                throw secondaryErr;
+            }
         }
     }
 }

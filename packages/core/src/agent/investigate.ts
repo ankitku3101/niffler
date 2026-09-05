@@ -1,6 +1,7 @@
 import { getOrder } from "../tools/getOrder.js";
 import { getCustomerHistory } from "../tools/getCustomerHistory.js";
 import { listPreviousAttempts } from "../tools/listPreviousAttempts.js";
+import { AllProvidersExhaustedError } from "./llmClient.js";
 import type { AgentMessage, LlmClient, ToolDefinition } from "./llmClient.js";
 import type { PaymentDataSource } from "../data/source.js";
 import { checkIterationLimit } from "../domain/policy.js";
@@ -97,6 +98,11 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
         try {
             turn = await llmClient.converse(messages, TOOL_DEFS);
         } catch (error) {
+            // Not a model mistake and not retryable: pushing a corrective message and going
+            // round again only spends the iteration budget and ends in an empty diagnosis,
+            // which reads as a broken agent instead of an exhausted quota.
+            if (error instanceof AllProvidersExhaustedError) throw error;
+
             const message = error instanceof Error ? error.message : String(error);
             console.warn(`converse() failed on case ${caseId}, iteration ${iteration}:`, message);
             messages.push({ kind: "user", text: "Your last response could not be processed. Use one of the available tools, and finish by calling submitDiagnosis." });

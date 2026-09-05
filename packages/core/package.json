@@ -35,7 +35,8 @@
     "seed-live-case": "tsx scripts/seed-live-case.ts",
     "check:recover-live": "tsx scripts/check-recover-live.ts",
     "reset-live-case": "tsx scripts/reset-live-case.ts",
-    "check:recovery-link": "tsx scripts/check-recovery-link.ts"
+    "check:recovery-link": "tsx scripts/check-recovery-link.ts",
+    "replay-control-cases": "tsx scripts/replay-control-cases.ts"
   },
   "dependencies": {
     "@google/genai": "^2.19.0",

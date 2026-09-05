@@ -8,6 +8,7 @@ import { FallbackLlmClient } from "@niffler/core/agent/fallbackClient";
 import { recoverCase } from "@niffler/core/agent/recoverCase";
 import type { RecoveryStep } from "@niffler/core/agent/recoveryStep";
 import { createRecoveryCases } from "@niffler/core/cases/createCases";
+import { replayControlCase } from "@niffler/core/cases/replayControlCase";
 import { JsonPaymentDataSource } from "@niffler/core/data/jsonSource";
 import { RazorpayDataSource } from "@niffler/core/data/razorpayDataSource";
 import { db } from "@niffler/core/db/client";
@@ -122,6 +123,12 @@ app.get("/cases/:id/live", async (req, res) => {
     const message = error instanceof Error ? error.message : String(error);
     send("failed", { message });
   } finally {
+    // Rewound even when the run failed: a case left mid-flight would otherwise drop out of
+    // the Agent Run picker permanently, which is the opposite of what this is here to fix.
+    // A no-op for anything that isn't a control-group case from the generated dataset.
+    await replayControlCase(new JsonPaymentDataSource(), id).catch((error) =>
+      console.error(`could not rewind case ${id} for replay:`, error)
+    );
     res.end();
   }
 });

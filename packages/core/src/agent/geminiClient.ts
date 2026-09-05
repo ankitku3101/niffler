@@ -18,7 +18,15 @@ function toGeminiFunctionDeclaration(tool: ToolDefinition) {
     }
 }
 
-// Converts an AgentMessage to Gemini's Content format
+// Converts an AgentMessage to Gemini's Content format.
+//
+// Gemini refuses a function-call turn it did not itself produce: it wants the thoughtSignature
+// that came back with the original call, and it only ever issues signatures for its own. That
+// is not hypothetical — the fallback switches provider mid-investigation whenever the primary
+// runs out of quota, and the conversation by then already contains Groq's tool calls. Sending
+// those on fails every remaining turn of that case, so a signature we do not hold means the
+// call is replayed as plain narration instead. The model still sees what was asked and what
+// came back; it simply is not asked to vouch for a call it never made.
 function toGeminiContent(
     message: Exclude<AgentMessage, { kind: "system" }>,
     thoughtSignatures: Map<string, string>
@@ -28,6 +36,12 @@ function toGeminiContent(
             return { role: "user", parts: [{ text: message.text }] };
         case "tool_call": {
             const signature = thoughtSignatures.get(message.id);
+            if (!signature) {
+                return {
+                    role: "model",
+                    parts: [{ text: `Called ${message.name} with ${JSON.stringify(message.input)}` }]
+                };
+            }
             return {
                 role: "model",
                 parts: [
@@ -37,12 +51,20 @@ function toGeminiContent(
                             name: message.name,
                             args: message.input as Record<string, unknown>
                         },
-                        ...(signature ? { thoughtSignature: signature } : {})
+                        thoughtSignature: signature
                     }
                 ]
             };
         }
         case "tool_result":
+            // Kept in step with the call above: a call replayed as narration has no function
+            // call for a structured response to attach to, so its result is narrated too.
+            if (!thoughtSignatures.has(message.id)) {
+                return {
+                    role: "user",
+                    parts: [{ text: `Result of ${message.name}: ${JSON.stringify(message.output)}` }]
+                };
+            }
             return {
                 role: "user",
                 parts: [
