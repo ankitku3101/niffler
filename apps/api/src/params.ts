@@ -1,10 +1,6 @@
-// Route params arrive as untrusted strings. Without a check they run straight into Drizzle
-// and the Razorpay SDK: Number("abc") is NaN, which Postgres rejects as an invalid bind and
-// the global error handler then reports as 503 "data unavailable" — telling a caller the
-// database is down when all they sent was a bad id.
-//
-// Plain predicates rather than Zod: these are two shape checks, and the API package has no
-// other reason to depend on a validation library.
+// Without these, a param runs straight into Drizzle or the Razorpay SDK: Number("abc") is NaN,
+// which Postgres rejects and the global error handler reports as 503 "data unavailable" —
+// telling a caller the database is down when all they sent was a bad id.
 
 /** A recovery case id — a positive integer and nothing else. */
 export function parseCaseId(raw: string | undefined): number | null {

@@ -22,10 +22,8 @@ export interface LlmClient {
 /**
  * Every configured provider is rate-limited or out of quota.
  *
- * Distinct from an ordinary provider error because it cannot be retried out of within one
- * investigation. The agent loop treats a normal failure as a model mistake and tries again;
- * doing that here just spends the iteration budget and ends in an empty diagnosis, which
- * reads as a broken agent rather than as a provider that is out of credit for the day.
+ * Kept distinct from an ordinary provider error because the agent loop retries those as model
+ * mistakes; retrying this one only spends the iteration budget and ends in an empty diagnosis.
  */
 export class AllProvidersExhaustedError extends Error {
     constructor(message = "Both AI providers are out of quota right now — please try again later.") {

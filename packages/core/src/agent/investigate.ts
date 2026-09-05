@@ -98,9 +98,7 @@ export async function investigateCase(dataSource: PaymentDataSource, llmClient: 
         try {
             turn = await llmClient.converse(messages, TOOL_DEFS);
         } catch (error) {
-            // Not a model mistake and not retryable: pushing a corrective message and going
-            // round again only spends the iteration budget and ends in an empty diagnosis,
-            // which reads as a broken agent instead of an exhausted quota.
+            // Not a model mistake: retrying would only end in an empty diagnosis.
             if (error instanceof AllProvidersExhaustedError) throw error;
 
             const message = error instanceof Error ? error.message : String(error);

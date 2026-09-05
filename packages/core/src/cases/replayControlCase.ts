@@ -5,34 +5,26 @@ import { auditLog, recoveryCases } from "../db/schema.js";
 import { isControlGroup } from "../evaluation/holdout.js";
 
 /**
- * Rewinds a control-group case to DETECTED so the Agent Run demo can be watched again.
+ * Rewinds a control-group case to DETECTED so Agent Run can offer it again.
  *
- * The measured batch is finished, so every case still offered on Agent Run is a control-group
- * one. Each visitor consumes one by running it, and without this the demo eventually empties —
- * taking with it the already-paid case that shows the policy engine overruling the agent.
- *
- * Replaying is safe because generateReport excludes control cases from every figure it
- * publishes, so nothing done here can move a number on Command Center.
- *
- * Returns whether the case was actually rewound.
+ * The measured batch is finished, so every case the demo offers is a control-group one and each
+ * visitor consumes one by running it. Safe because generateReport excludes control cases from
+ * every figure it publishes, so nothing here can move a number on Command Center.
  */
 export async function replayControlCase(dataSource: PaymentDataSource, caseId: number): Promise<boolean> {
     const [caseRow] = await db.select().from(recoveryCases).where(eq(recoveryCases.id, caseId)).limit(1);
     if (!caseRow) return false;
 
-    // isControlGroup hashes any string happily, a real Razorpay order id included, so
-    // membership of the generated dataset is checked first — a visitor's own Try It
-    // Yourself case must never be rewound out from under them.
+    // isControlGroup hashes any string, a real Razorpay order id included, so dataset
+    // membership is checked first: a visitor's own case must never be rewound.
     const order = await dataSource.getOrder(caseRow.orderId);
     if (!order || !isControlGroup(caseRow.orderId)) return false;
 
-    // Cleared rather than kept, unlike a genuine reprocess (see requeue-blank-cases.ts):
-    // this is a demo fixture being rewound, and stacking one trail per visitor would make
-    // the case unreadable in Decision Explorer within a day.
+    // Cleared, not kept as a reprocess would: one stacked trail per visitor would soon make
+    // the case unreadable in Decision Explorer.
     await db.delete(auditLog).where(eq(auditLog.caseId, caseId));
 
-    // Deliberately bypasses canTransition, like reset.ts and requeue-blank-cases.ts —
-    // an administrative rewind, not a step the state machine is meant to model.
+    // Bypasses canTransition, like reset.ts — an administrative rewind, not a modelled step.
     await db
         .update(recoveryCases)
         .set({ status: "DETECTED", updatedAt: new Date() })

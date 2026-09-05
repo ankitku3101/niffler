@@ -123,9 +123,8 @@ app.get("/cases/:id/live", async (req, res) => {
     const message = error instanceof Error ? error.message : String(error);
     send("failed", { message });
   } finally {
-    // Rewound even when the run failed: a case left mid-flight would otherwise drop out of
-    // the Agent Run picker permanently, which is the opposite of what this is here to fix.
-    // A no-op for anything that isn't a control-group case from the generated dataset.
+    // Runs even when the run failed, or a case left mid-flight would drop out of the Agent
+    // Run picker for good. A no-op for anything that isn't a control-group case.
     await replayControlCase(new JsonPaymentDataSource(), id).catch((error) =>
       console.error(`could not rewind case ${id} for replay:`, error)
     );

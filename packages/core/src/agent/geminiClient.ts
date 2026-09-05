@@ -20,13 +20,9 @@ function toGeminiFunctionDeclaration(tool: ToolDefinition) {
 
 // Converts an AgentMessage to Gemini's Content format.
 //
-// Gemini refuses a function-call turn it did not itself produce: it wants the thoughtSignature
-// that came back with the original call, and it only ever issues signatures for its own. That
-// is not hypothetical — the fallback switches provider mid-investigation whenever the primary
-// runs out of quota, and the conversation by then already contains Groq's tool calls. Sending
-// those on fails every remaining turn of that case, so a signature we do not hold means the
-// call is replayed as plain narration instead. The model still sees what was asked and what
-// came back; it simply is not asked to vouch for a call it never made.
+// Gemini rejects a function-call turn it did not produce: it wants the thoughtSignature issued
+// with the original call, and only holds signatures for its own. The fallback hands it Groq's
+// calls mid-investigation, so a call whose signature we lack is replayed as plain narration.
 function toGeminiContent(
     message: Exclude<AgentMessage, { kind: "system" }>,
     thoughtSignatures: Map<string, string>

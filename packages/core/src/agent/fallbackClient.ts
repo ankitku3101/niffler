@@ -25,9 +25,7 @@ export class FallbackLlmClient implements LlmClient {
             try {
                 return await this.secondary.converse(messages, tools);
             } catch (secondaryErr) {
-                // Only when the backup is rate-limited too. Any other failure is the
-                // secondary's own problem and should surface as itself, same reasoning as
-                // the primary check above.
+                // Only when the backup is rate-limited too; any other failure surfaces as itself.
                 if (isRateLimitError(secondaryErr)) throw new AllProvidersExhaustedError();
                 throw secondaryErr;
             }

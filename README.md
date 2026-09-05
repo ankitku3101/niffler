@@ -115,7 +115,7 @@ Two seams make the whole thing swappable:
 - **A policy engine that can overrule the AI**, with all reasons recorded, not just the deciding one.
 - **A state machine** every case must walk. No code, including mine, can skip a step.
 - **Real Razorpay Test Mode integration** — orders, captures, Payment Links, and a signature-verified webhook.
-- **A control group.** 34 of the 200 failed orders are deliberately never touched, so recovery can be compared against doing nothing.
+- **A control group.** 34 of the 200 failed orders are deliberately never touched, so recovery can be compared against doing nothing. Those same cases are what Agent Run offers, and each rewinds itself once watched — so the case where the rules overrule the agent is there for every visitor, not just the first.
 - **A full audit trail.** Every read, decision and action is stored and replayable.
 - **Try it yourself.** Create a real test order, fail it on purpose, and watch the agent handle a case it has never seen. If it sends a payment link, that link is real and payable — pay it and a webhook turns the case into a confirmed recovery.
 - **An answer on scale**, on the dashboard rather than buried here: what was measured, where the bottleneck actually is, and what is missing.
@@ -204,7 +204,7 @@ packages/core/
     evaluation/       batch runs, metrics, control group, rules comparison
     webhooks/         signature checking and the paid-link handler
     db/               Drizzle schema and client
-  scripts/            31 runnable scripts (see below)
+  scripts/            32 runnable scripts (see below)
   data/world.json     the generated dataset, committed so it never drifts
   drizzle/            SQL migrations
 ```
@@ -213,7 +213,7 @@ packages/core/
 
 ### The scripts
 
-`packages/core/scripts/` is where most of this project was actually built and checked. 22 of the 31 are `check-*` scripts, one per module, and each one runs the real thing against real data rather than mocks:
+`packages/core/scripts/` is where most of this project was actually built and checked. 22 of the 32 are `check-*` scripts, one per module, and each one runs the real thing against real data rather than mocks:
 
 ```bash
 npm run check:policy      --workspace @niffler/core   # the four rules, on real orders
@@ -245,7 +245,7 @@ Beyond those:
 - **Webhook signatures are verified** against the raw request body before it is parsed, and compared in constant time.
 - **The state machine is never skipped.** Even internal code walks it one legal step at a time.
 - **A failing tool is information, not a crash.** The error goes back to the model, which can try something else.
-- **If one AI provider rate-limits, the other takes over.**
+- **If one AI provider rate-limits, the other takes over**, including part-way through a case. If both are out of quota, the page says so rather than showing an empty diagnosis that looks like a broken agent.
 - **If the database is unreachable, pages say so** instead of collapsing.
 - **Case creation is idempotent**, so running detection twice cannot duplicate work.
 
@@ -306,11 +306,10 @@ The frontend only needs `NEXT_PUBLIC_API_URL`.
 ## Future improvements
 
 - **Automated tests.** There are verification scripts with real assertions for every module, but they are run by hand. They belong in a test runner with CI behind them, and that is the biggest gap in this repo.
-- **The best demo is one-shot.** Watching the rules overrule the agent uses up the case that makes it possible. Control-group cases should reset themselves after a run so it can be watched again.
 - **Rate limiting.** Creating a test order is unmetered. Test Mode limits the damage, but it should still be capped.
 - **A smarter customer-level limit.** The attempt limit counts failures per order. It should probably also look across everything one customer has tried recently.
 - **Recovery links go nowhere in the generated data.** A confirmed recovery only happens through a real payment. Simulating a customer paying a link would make the headline number mean more.
-- **Sticky provider fallback.** The switch to the backup AI happens per call, not per investigation, which can confuse a conversation that started on the other provider.
+- **Sticky provider fallback.** The switch to the backup AI happens per call rather than per investigation. Either provider can now pick up a conversation the other started, so nothing breaks, but a case that has already switched still pays for a failed call to the exhausted provider every turn.
 
 ---
 

@@ -4,13 +4,15 @@ import { JsonPaymentDataSource } from "../src/data/jsonSource.js";
 import { isControlGroup } from "../src/evaluation/holdout.js";
 import { replayControlCase } from "../src/cases/replayControlCase.js";
 
-// Returns every control-group case to DETECTED so it is offered on Agent Run again.
+// Repairs control-group cases stranded in a terminal status, which the live route's own rewind
+// cannot reach because a case has to be offered before it can be run. Safe to re-run.
 //
-// The live route rewinds a case as it finishes, but that only helps cases that were still
-// being offered in the first place. Anything consumed before that existed — or stranded by a
-// run that died mid-flight — sits in a terminal status where nothing will ever pick it up
-// again. This is the repair for those, and it is safe to re-run: a case already at DETECTED
-// is skipped.
+//   npm run replay-control-cases            preview
+//   npm run replay-control-cases -- write   apply
+//
+// Writing is opt-in, and a bare word rather than a --flag: PowerShell's npm shim drops the `--`
+// separator, so a lost argument has to degrade to a preview rather than an unintended write.
+const shouldWrite = process.argv.includes("write");
 
 const dataSource = new JsonPaymentDataSource();
 const synthetic = new Set((await dataSource.listOrders()).map((order) => order.id));
@@ -22,6 +24,16 @@ const stranded = cases.filter(
 
 if (stranded.length === 0) {
     console.log("Nothing to do — every control case is already available on Agent Run.");
+    process.exit(0);
+}
+
+if (!shouldWrite) {
+    console.log(`Would rewind ${stranded.length} control case(s):`);
+    for (const c of stranded) {
+        console.log(`  case ${c.id} (${c.orderId})  ${c.status} -> DETECTED`);
+    }
+    console.log("\nPreview only — nothing was written.");
+    console.log("Re-run as `npm run replay-control-cases -- write` to apply.");
     process.exit(0);
 }
 
