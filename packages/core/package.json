@@ -9,6 +9,7 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "check:rng": "tsx scripts/check-rng.ts",
     "check:world": "tsx scripts/check-world.ts",

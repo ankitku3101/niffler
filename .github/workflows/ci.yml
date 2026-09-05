@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      # Logic that holds no connections: the four policy rules, the case state machine, the
+      # control-group split, the baseline rules engine, the seeded generator, and the API's
+      # route-param validation. The check-* scripts cover the rest, but they need a database
+      # and live Groq and Razorpay credentials, so they stay manual rather than running here
+      # against real third-party accounts on every push.
+      - run: npm test

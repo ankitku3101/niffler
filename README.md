@@ -228,7 +228,15 @@ npm run check:razorpay    --workspace @niffler/core   # a live Test Mode API cal
 
 The rest do the work: `npm run reset` clears and re-detects, `npm run batch` processes a batch, `npm run report` prints the metrics, and a handful seed or repair live Razorpay cases. `generate-world.ts` rebuilds the dataset from its seed, though you never need to — the result is committed, and the same seed always produces the same file.
 
-These are how I verified each stage before moving to the next, and several real bugs in this repo were found by running them rather than by reading the code. They are also the honest weak spot: they assert properly, but they are run by hand, not by CI.
+These are how I verified each stage before moving to the next, and several real bugs in this repo were found by running them rather than by reading the code. They need a database and live API keys, so they are still run by hand.
+
+Alongside them there is a fast suite that needs neither, and it runs on every push:
+
+```bash
+npm test        # 48 tests, no database, no API keys
+```
+
+It covers the parts worth locking down — the four policy rules, the case state machine, the control-group split, the baseline rules engine, the seeded generator, and the API's route-param validation.
 
 ## Reliability and guardrails
 
@@ -307,7 +315,7 @@ The frontend only needs `NEXT_PUBLIC_API_URL`.
 
 ## Future improvements
 
-- **Automated tests.** There are verification scripts with real assertions for every module, but they are run by hand. They belong in a test runner with CI behind them, and that is the biggest gap in this repo.
+- **More of the suite in CI.** The logic that holds no connections is tested and runs on every push, but the `check-*` scripts that exercise the database, Groq and Razorpay are still run by hand. Putting the database ones behind a Postgres service container is the next step; the ones that call real third-party accounts probably should stay manual.
 - **Rate limiting.** Creating a test order is unmetered. Test Mode limits the damage, but it should still be capped.
 - **A smarter customer-level limit.** The attempt limit counts failures per order. It should probably also look across everything one customer has tried recently.
 - **Recovery links go nowhere in the generated data.** A confirmed recovery only happens through a real payment. Simulating a customer paying a link would make the headline number mean more.
