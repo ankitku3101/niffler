@@ -22,6 +22,7 @@ import { getCaseDetail, listCases } from "@niffler/core/evaluation/cases";
 import { getLastFinishedRun } from "@niffler/core/evaluation/lastRun";
 import { handlePaymentLinkPaid } from "@niffler/core/webhooks/handlePaymentLinkPaid";
 import { verifyWebhookSignature } from "@niffler/core/webhooks/verifySignature";
+import { parseCaseId, parseOrderId } from "./params.js";
 import { getRunGateStatus, isOwnerToken, PUBLIC_RUN_LIMIT } from "./runGate.js";
 
 const MAX_ATTEMPTS = 3;
@@ -78,7 +79,12 @@ app.get("/cases", async (_req, res) => {
 });
 
 app.get("/cases/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = parseCaseId(req.params.id);
+  if (id === null) {
+    res.status(400).json({ error: "case id must be a positive integer" });
+    return;
+  }
+
   const detail = await getCaseDetail(new JsonPaymentDataSource(), id, new RazorpayDataSource());
   if (!detail) {
     res.status(404).json({ error: "not found" });
@@ -89,7 +95,11 @@ app.get("/cases/:id", async (req, res) => {
 
 // Streams one case's recovery live over SSE; ?source=razorpay targets a real order instead of the synthetic dataset.
 app.get("/cases/:id/live", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = parseCaseId(req.params.id);
+  if (id === null) {
+    res.status(400).json({ error: "case id must be a positive integer" });
+    return;
+  }
   const useRazorpay = req.query.source === "razorpay";
 
   res.setHeader("Content-Type", "text/event-stream");
@@ -127,7 +137,13 @@ app.post("/simulate/order", async (_req, res) => {
 });
 
 app.get("/simulate/order/:orderId/status", async (req, res) => {
-  const order = await new RazorpayDataSource().getOrder(req.params.orderId!);
+  const orderId = parseOrderId(req.params.orderId);
+  if (!orderId) {
+    res.status(400).json({ error: "malformed order id" });
+    return;
+  }
+
+  const order = await new RazorpayDataSource().getOrder(orderId);
   if (!order) {
     res.status(404).json({ error: "not found" });
     return;
@@ -137,7 +153,12 @@ app.get("/simulate/order/:orderId/status", async (req, res) => {
 
 // Idempotent — safe to call again if the frontend retries.
 app.post("/simulate/order/:orderId/case", async (req, res) => {
-  const orderId = req.params.orderId!;
+  const orderId = parseOrderId(req.params.orderId);
+  if (!orderId) {
+    res.status(400).json({ error: "malformed order id" });
+    return;
+  }
+
   await createRecoveryCases([orderId]);
   const [caseRow] = await db.select().from(recoveryCases).where(eq(recoveryCases.orderId, orderId)).limit(1);
   if (!caseRow) {
