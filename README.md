@@ -6,7 +6,7 @@ An AI agent that wins back failed payments, with a fixed set of rules standing b
 
 **30 seconds, one real case.** The agent investigates, decides, and the rules block it anyway.
 
-https://github.com/user-attachments/assets/d75960bd-d176-4d47-81f1-8565a0635dbc
+https://github.com/user-attachments/assets/b55d4729-359d-472f-bb44-e650cb27a575
 
 **[See it live →](https://niffler-web.vercel.app)**
 
@@ -120,7 +120,7 @@ Two seams make the whole thing swappable:
 
 The full loop against a real Razorpay order — created, failed on purpose, investigated, and answered with a link you can actually pay:
 
-https://github.com/user-attachments/assets/79ce92e5-5b3e-4322-8a38-1c569dcf32fd
+https://github.com/user-attachments/assets/4d125efc-09cb-487d-8abd-286a5e39b63b
 
 ## Example investigation
 
