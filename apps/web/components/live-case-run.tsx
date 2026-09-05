@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   ActionCard,
@@ -34,10 +34,46 @@ export function LiveCaseRun({
   const [status, setStatus] = useState<"running" | "done" | "failed">("running")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
+  // Each step appears below the last, so a run quickly grows past the fold and the reader has to
+  // chase it. The view follows along instead — until they scroll away themselves, at which point
+  // it stops fighting them and resumes only if they come back down.
+  const endRef = useRef<HTMLDivElement>(null)
+  const following = useRef(true)
+
+  useEffect(() => {
+    const atBottom = () =>
+      window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 150
+
+    // Deliberately wheel/touch rather than `scroll`: a smooth programmatic scroll also fires
+    // `scroll`, at intermediate positions that don't look like the bottom, so following would
+    // switch itself off part-way through its own animation and strand the last card off-screen.
+    function onWheel(event: WheelEvent) {
+      if (event.deltaY < 0) following.current = false
+      else if (atBottom()) following.current = true
+    }
+    function onTouchMove() {
+      following.current = atBottom()
+    }
+
+    window.addEventListener("wheel", onWheel, { passive: true })
+    window.addEventListener("touchmove", onTouchMove, { passive: true })
+    return () => {
+      window.removeEventListener("wheel", onWheel)
+      window.removeEventListener("touchmove", onTouchMove)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (steps.length === 0 || !following.current) return
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    endRef.current?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" })
+  }, [steps.length, status])
+
   useEffect(() => {
     setSteps([])
     setStatus("running")
     setErrorMessage(null)
+    following.current = true
 
     const query = source === "razorpay" ? "?source=razorpay" : ""
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/cases/${caseId}/live${query}`)
@@ -95,6 +131,7 @@ export function LiveCaseRun({
         )}
         {actionStep?.kind === "action" && <ActionCard toolName={actionStep.toolName} action={actionStep.output} />}
         {errorMessage && <p className="text-destructive">{errorMessage}</p>}
+        <div ref={endRef} />
       </CardContent>
     </Card>
   )
