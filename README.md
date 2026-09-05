@@ -4,6 +4,10 @@
 
 An AI agent that wins back failed payments, with a fixed set of rules standing between it and your money.
 
+**30 seconds, one real case.** The agent investigates, decides, and the rules block it anyway.
+
+https://github.com/user-attachments/assets/d75960bd-d176-4d47-81f1-8565a0635dbc
+
 **[See it live →](https://niffler-web.vercel.app)**
 
 An independent project inspired by Razorpay's AI Revenue Recovery Buildathon track. It runs on Razorpay Test Mode, so no real money moves anywhere in it.
@@ -32,19 +36,9 @@ The important part is what happens next. **The AI does not get to act on its own
 
 That split is the whole design. The AI is good at reading a messy situation and explaining it. It is not something you want quietly moving money.
 
-## Screenshots
-
-**Command Center** — the results, what to do next, and an honest answer on scale.
+Here is what that produces over 200 failed orders — the results, what to do next, and an honest answer on scale.
 
 ![Command Center](./docs/command-center.png)
-
-**Agent Run** — one case, live. Here the agent decided to stop, and the rules blocked it anyway because the order had already been paid.
-
-![Agent Run](./docs/agent-run.png)
-
-**Agent vs. Rules** — every decision replayed through a plain rules engine and compared.
-
-![Agent vs Rules](./docs/agent-vs-rules.png)
 
 ## How NIFFLER works
 
@@ -77,6 +71,10 @@ The other 43 cases are where it earns its place. **34 of those 43 disagreements 
 - **7 cases**: the rules escalate every bank risk block to a human. The agent checked the customer's record, found nothing suspicious, and treated it as a problem with that one payment method.
 
 It is also an agent rather than a single AI call because it decides what to look at. It can read the order, stop there, and answer. Or it can pull the customer's whole history first. That choice is what produces the 34 cases above.
+
+Every one of those comparisons is on the dashboard, case by case, rather than only summarised here.
+
+![Agent vs Rules](./docs/agent-vs-rules.png)
 
 ## System architecture
 
@@ -119,6 +117,10 @@ Two seams make the whole thing swappable:
 - **A full audit trail.** Every read, decision and action is stored and replayable.
 - **Try it yourself.** Create a real test order, fail it on purpose, and watch the agent handle a case it has never seen. If it sends a payment link, that link is real and payable — pay it and a webhook turns the case into a confirmed recovery.
 - **An answer on scale**, on the dashboard rather than buried here: what was measured, where the bottleneck actually is, and what is missing.
+
+The full loop against a real Razorpay order — created, failed on purpose, investigated, and answered with a link you can actually pay:
+
+https://github.com/user-attachments/assets/79ce92e5-5b3e-4322-8a38-1c569dcf32fd
 
 ## Example investigation
 
