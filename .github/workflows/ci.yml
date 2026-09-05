@@ -20,9 +20,6 @@ jobs:
 
       - run: npm run typecheck
 
-      # Logic that holds no connections: the four policy rules, the case state machine, the
-      # control-group split, the baseline rules engine, the seeded generator, and the API's
-      # route-param validation. The check-* scripts cover the rest, but they need a database
-      # and live Groq and Razorpay credentials, so they stay manual rather than running here
-      # against real third-party accounts on every push.
+      # Only the logic that holds no connections. The check-* scripts need a database and live
+      # Groq and Razorpay credentials, so they stay manual rather than running on every push.
       - run: npm test

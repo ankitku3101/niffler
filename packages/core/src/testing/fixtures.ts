@@ -1,5 +1,5 @@
-// Builders for the tests. Kept in one place so a test reads as the case it is describing
-// rather than as a wall of fields the rule under test never looks at.
+// Builders for the tests, so each one reads as the case it describes rather than as a wall of
+// fields the rule under test never looks at.
 
 import type { PublicOrder } from "../domain/order.js";
 import type { FailedPayment, FailureReason, Payment } from "../domain/payment.js";

@@ -73,8 +73,7 @@ describe("checkAttemptLimit", () => {
 
 describe("checkPriorRecoveryLink", () => {
     test("denies a second link once one has been paid", () => {
-        // A paid link collects the money without settling the original order, so this is the
-        // only rule that can see it. checkEligibility would still call the order unpaid.
+        // A paid link never settles the original order, so checkEligibility still reads it as unpaid.
         const { decision, reason } = checkPriorRecoveryLink({ issued: true, paid: true });
         assert.equal(decision, "DENIED");
         assert.match(reason, /already paid/);
@@ -125,8 +124,7 @@ describe("combinePolicyChecks", () => {
     });
 
     test("throws on no rules at all, rather than inventing a verdict", () => {
-        // Deliberate: every case must be checked against at least one rule, so an empty array
-        // is a caller bug that should surface loudly instead of defaulting either way.
+        // Every case must be checked against at least one rule, so an empty array is a caller bug.
         assert.throws(() => combinePolicyChecks([]));
     });
 });

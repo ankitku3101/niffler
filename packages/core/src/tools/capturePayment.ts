@@ -15,37 +15,50 @@ export async function capturePayment(dataSource: PaymentDataSource, rawInput: un
     const input = GetOrderInputSchema.parse(rawInput);
     const { order, caseRow } = await resolveCaseOrder(dataSource, input.caseId);
 
-    let result: CapturePaymentResult;
-
+    // Already captured on an earlier run: nothing to do but record that it was asked again.
     if(caseRow.status === "RECOVERED") {
-        const status = "RECOVERED"
-        result = { status }
-    } else if (!canTransition(caseRow.status, "ACTION_EXECUTED")) {
-        throw new Error (`Cannot capture case ${input.caseId} from status ${caseRow.status}`);
-    } else {
-        const payments = await dataSource.listPaymentsForOrder(order.id);
-        const authorizedPayment = payments.find(p => p.status === "authorized");
-
-        if(!authorizedPayment) {
-            throw new Error (`No authorized payment to capture for case ${input.caseId}`);
-        }
-
-        await dataSource.capturePayment(authorizedPayment.id, authorizedPayment.amount_paise);
-
-        await db.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
-        await db.update(recoveryCases).set({ status: "RECOVERED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
-
-        const status = "RECOVERED"
-        const amount_paise = authorizedPayment.amount_paise;
-        result = { status, amount_paise }
+        const result: CapturePaymentResult = { status: "RECOVERED" };
+        await db.insert(auditLog).values({
+            caseId: input.caseId,
+            toolName: "capturePayment",
+            input,
+            output: result,
+        })
+        return result
     }
 
-    await db.insert(auditLog).values({
-        caseId: input.caseId,
-        toolName: "capturePayment",
-        input,
-        output: result,
-    })
+    if (!canTransition(caseRow.status, "ACTION_EXECUTED")) {
+        throw new Error (`Cannot capture case ${input.caseId} from status ${caseRow.status}`);
+    }
+
+    const payments = await dataSource.listPaymentsForOrder(order.id);
+    const authorizedPayment = payments.find(p => p.status === "authorized");
+
+    if(!authorizedPayment) {
+        throw new Error (`No authorized payment to capture for case ${input.caseId}`);
+    }
+
+    // Outside the transaction on purpose: an API call cannot be rolled back, and holding one
+    // open across a request to Razorpay would be worse than the window it closes.
+    await dataSource.capturePayment(authorizedPayment.id, authorizedPayment.amount_paise);
+
+    const result: CapturePaymentResult = {
+        status: "RECOVERED",
+        amount_paise: authorizedPayment.amount_paise,
+    };
+
+    // The status and the row that explains it commit together, or neither does.
+    await db.transaction(async (tx) => {
+        await tx.update(recoveryCases).set({ status: "ACTION_EXECUTED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
+        await tx.update(recoveryCases).set({ status: "RECOVERED", updatedAt: new Date() }).where(eq(recoveryCases.id, input.caseId));
+
+        await tx.insert(auditLog).values({
+            caseId: input.caseId,
+            toolName: "capturePayment",
+            input,
+            output: result,
+        })
+    });
 
     return result
 }

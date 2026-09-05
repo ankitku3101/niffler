@@ -1,6 +1,5 @@
-// Without these, a param runs straight into Drizzle or the Razorpay SDK: Number("abc") is NaN,
-// which Postgres rejects and the global error handler reports as 503 "data unavailable" —
-// telling a caller the database is down when all they sent was a bad id.
+// Number("abc") is NaN, which Postgres rejects and the caller then reads as 503 "data
+// unavailable" — the database reported as down when all they sent was a bad id.
 
 /** A recovery case id — a positive integer and nothing else. */
 export function parseCaseId(raw: string | undefined): number | null {

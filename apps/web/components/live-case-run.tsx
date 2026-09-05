@@ -34,9 +34,8 @@ export function LiveCaseRun({
   const [status, setStatus] = useState<"running" | "done" | "failed">("running")
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // Each step appears below the last, so a run quickly grows past the fold and the reader has to
-  // chase it. The view follows along instead — until they scroll away themselves, at which point
-  // it stops fighting them and resumes only if they come back down.
+  // A run grows past the fold as steps arrive, so the view follows it down — until the reader
+  // scrolls away themselves, at which point it stops and only resumes if they come back.
   const endRef = useRef<HTMLDivElement>(null)
   const following = useRef(true)
 

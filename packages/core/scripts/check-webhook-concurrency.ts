@@ -4,11 +4,7 @@ import { auditLog, recoveryCases } from "../src/db/schema.js";
 import { handlePaymentLinkPaid } from "../src/webhooks/handlePaymentLinkPaid.js";
 
 // Razorpay retries a delivery it does not hear back from, so the same event can arrive while
-// the previous copy is still being handled. handlePaymentLinkPaid decides whether an event was
-// already processed and records that it now has been; those two steps are separated by awaits,
-// so without a lock a retry could read the audit trail before the first delivery wrote to it.
-//
-// Cases here are created and removed by this script, so it touches nothing real.
+// the previous copy is still being handled. Cases here are created and removed by this script.
 
 const HOLD_MS = 2500;
 

@@ -43,8 +43,7 @@ describe("canTransition", () => {
     });
 
     test("no state transitions to itself", () => {
-        // Why the action tools branch on their starting status instead of always walking two
-        // hops: a case already at ACTION_EXECUTED cannot re-enter it.
+        // Why the action tools branch on their starting status rather than always walking two hops.
         for (const state of ALL) {
             assert.equal(canTransition(state, state), false, `${state} -> ${state}`);
         }

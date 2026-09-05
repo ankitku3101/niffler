@@ -9,8 +9,7 @@ const draw = (seed: string, n = 20) => {
 
 describe("makeRng", () => {
     test("the same seed reproduces the same sequence", () => {
-        // data/world.json is committed and the metrics are compared across runs, so this has
-        // to hold forever, not just within one session.
+        // data/world.json is committed, so this has to hold forever, not just within a session.
         assert.deepEqual(draw("niffler-v1", 50), draw("niffler-v1", 50));
     });
 
@@ -34,8 +33,7 @@ describe("makeRng", () => {
     });
 
     test("a fork is deterministic and independent of its parent", () => {
-        // What the control-group split rests on: forking by order id gives a stable draw that
-        // nothing else consuming the parent generator can shift.
+        // What the control-group split rests on: a stable draw per order id, whatever else ran.
         assert.equal(makeRng("s").fork("order_1").next(), makeRng("s").fork("order_1").next());
         assert.notEqual(makeRng("s").fork("order_1").next(), makeRng("s").fork("order_2").next());
 

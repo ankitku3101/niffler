@@ -4,14 +4,12 @@ import { JsonPaymentDataSource } from "../src/data/jsonSource.js";
 import { isControlGroup } from "../src/evaluation/holdout.js";
 import { replayControlCase } from "../src/cases/replayControlCase.js";
 
-// Repairs control-group cases stranded in a terminal status, which the live route's own rewind
-// cannot reach because a case has to be offered before it can be run. Safe to re-run.
+// Returns control-group cases stranded in a terminal status to DETECTED. Safe to re-run.
 //
 //   npm run replay-control-cases            preview
 //   npm run replay-control-cases -- write   apply
 //
-// Writing is opt-in, and a bare word rather than a --flag: PowerShell's npm shim drops the `--`
-// separator, so a lost argument has to degrade to a preview rather than an unintended write.
+// `write` is a bare word on purpose: PowerShell's npm shim swallows a `-- --flag`.
 const shouldWrite = process.argv.includes("write");
 
 const dataSource = new JsonPaymentDataSource();

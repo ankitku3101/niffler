@@ -6,8 +6,7 @@ const ids = Array.from({ length: 2000 }, (_, i) => `order_test_${i}`);
 
 describe("isControlGroup", () => {
     test("gives the same answer every time for the same order", () => {
-        // Nothing stores the assignment. It has to be recomputable at report time, long after
-        // the run, or attributable lift cannot be measured at all.
+        // Nothing stores the assignment, so it has to be recomputable long after the run.
         for (const id of ids.slice(0, 50)) {
             assert.equal(isControlGroup(id), isControlGroup(id));
         }

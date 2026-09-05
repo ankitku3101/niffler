@@ -52,9 +52,8 @@ export async function handlePaymentLinkPaid(rawPayload: unknown): Promise<Handle
       return { handled: false, reason: `no recovery case for order ${orderId}` };
     }
 
-    // Every webhook row for the case is checked, not just one — a single row is all this case
-    // can have today (reference_id is unique per link, and a paid link cannot be paid again),
-    // but "some row already has this paymentId" is what the check actually means.
+    // A case can only have one such row today, but "some row already has this paymentId" is
+    // what the check actually means.
     const processedRows = await tx
       .select()
       .from(auditLog)

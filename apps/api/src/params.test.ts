@@ -9,8 +9,7 @@ describe("parseCaseId", () => {
     });
 
     test("rejects anything that is not one", () => {
-        // Without this, Number("abc") is NaN, Postgres rejects the bind, and the caller is
-        // told the database is unavailable when all they sent was a bad id.
+        // Number("abc") is NaN, which Postgres rejects and the caller reads as "database down".
         for (const input of ["abc", "", "0", "-1", "1.5", "1e3", " 1", "1 ", "0x10", "NaN"]) {
             assert.equal(parseCaseId(input), null, `expected ${JSON.stringify(input)} to be rejected`);
         }

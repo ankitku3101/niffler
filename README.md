@@ -318,6 +318,7 @@ The frontend only needs `NEXT_PUBLIC_API_URL`.
 - **More of the suite in CI.** The logic that holds no connections is tested and runs on every push, but the `check-*` scripts that exercise the database, Groq and Razorpay are still run by hand. Putting the database ones behind a Postgres service container is the next step; the ones that call real third-party accounts probably should stay manual.
 - **Rate limiting.** Creating a test order is unmetered. Test Mode limits the damage, but it should still be capped.
 - **A smarter customer-level limit.** The attempt limit counts failures per order. It should probably also look across everything one customer has tried recently.
+- **The gap between Razorpay and the database.** Taking a payment is an API call; recording it is a database write. Each is safe on its own — the writes commit together or not at all — but if the process died between them, Razorpay would have the money and NIFFLER would not know. Closing that properly needs a job that reconciles the two afterwards, not a bigger transaction.
 - **Recovery links go nowhere in the generated data.** A confirmed recovery only happens through a real payment. Simulating a customer paying a link would make the headline number mean more.
 - **Sticky provider fallback.** The switch to the backup AI happens per call rather than per investigation. Either provider can now pick up a conversation the other started, so nothing breaks, but a case that has already switched still pays for a failed call to the exhausted provider every turn.
 
